@@ -13,7 +13,7 @@ Page({
         url = '/pages/register/register';
         break;
       case '查询':
-        url = '/pages/search/search';
+        url = '/pages/docProfile/docProfile';
         break;
       case '预约':
         url = '/pages/appointment/appointment';

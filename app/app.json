@@ -5,7 +5,8 @@
     "pages/register/register",
     "pages/deptPick/deptPick",
     "pages/login/login",
-    "pages/info/info"
+    "pages/info/info",
+    "pages/docProfile/docProfile"
   ],
   "window": {
     "backgroundTextStyle": "light",

@@ -1,15 +1,31 @@
 <view class="container">
   <view class="header">
-    <text class="title">请选择科室</text>
+    <input class="search-input" placeholder="搜索科室…" bindinput="onSearchInput" />
   </view>
 
-  <picker mode="multiSelector"
-          bindchange="bindMultiPickerChange"
-          bindcolumnchange="bindMultiPickerColumnChange"
-          value="{{multiIndex}}"
-          range="{{multiArray}}">
-    <view class="picker-box">
-      <text>当前选择：{{multiArray[0][multiIndex[0]]}} - {{multiArray[1][multiIndex[1]]}}</text>
-    </view>
-  </picker>
+  <view class="menu">
+    <!-- 左侧主科室 -->
+    <scroll-view class="left-menu" scroll-y>
+      <block wx:for="{{filteredDepartments}}" wx:key="name">
+        <view 
+          class="menu-item {{selectedDept === index ? 'active' : ''}}" 
+          bindtap="onSelectDept" 
+          data-index="{{index}}">
+          {{item.name}}
+        </view>
+      </block>
+    </scroll-view>
+
+    <!-- 右侧子科室 -->
+    <scroll-view class="right-menu" scroll-y>
+      <block wx:for="{{filteredDepartments[selectedDept].subs}}" wx:key="sub">
+        <view 
+          class="submenu-item" 
+          bindtap="onSelectSub" 
+          data-sub="{{item}}">
+          {{item}}
+        </view>
+      </block>
+    </scroll-view>
+  </view>
 </view>

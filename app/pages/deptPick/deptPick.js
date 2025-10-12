@@ -7,54 +7,42 @@ Page({
       { name: '妇产科', subs: ['妇科', '产科'] },
       { name: '五官科', subs: ['耳鼻喉科', '眼科', '口腔科'] }
     ],
-    multiArray: [],
-    multiIndex: [0, 0]
+    filteredDepartments: [],
+    selectedDept: 0,
+    searchValue: ''
   },
 
   onLoad() {
-    this.initPicker();
-  },
-
-  initPicker() {
-    const first = this.data.departments.map(d => d.name);
-    const second = this.data.departments[0].subs;
     this.setData({
-      multiArray: [first, second]
+      filteredDepartments: this.data.departments
     });
   },
 
-  bindMultiPickerChange(e) {
-    const { multiIndex, multiArray } = this.data;
-    const selectedDept = multiArray[0][multiIndex[0]];
-    const selectedSub = multiArray[1][multiIndex[1]];
-    const result = `${selectedDept} - ${selectedSub}`;
+  onSelectDept(e) {
+    const index = e.currentTarget.dataset.index;
+    this.setData({ selectedDept: index });
+  },
 
-    wx.setStorageSync('selectedDepartment', result);
+  onSelectSub(e) {
+    const sub = e.currentTarget.dataset.sub;
+    const dept = this.data.filteredDepartments[this.data.selectedDept].name;
     wx.showToast({
-      title: `${selectedDept} - ${selectedSub}`,
+      title: `${dept} - ${sub}`,
       icon: 'success'
     });
-        // 延迟返回主页
-        setTimeout(() => {
-          wx.navigateBack();
-        }, 800);
+    wx.setStorageSync('selectedDepartment', `${dept} - ${sub}`);
+    setTimeout(() => wx.navigateBack(), 800);
   },
 
-  bindMultiPickerColumnChange(e) {
-    const { column, value } = e.detail;
-    let { multiArray, multiIndex, departments } = this.data;
-
-    multiIndex[column] = value;
-
-    if (column === 0) {
-      const subs = departments[value].subs;
-      multiArray[1] = subs;
-      multiIndex[1] = 0;
-    }
-
+  onSearchInput(e) {
+    const value = e.detail.value.trim();
+    const filtered = this.data.departments.filter(d =>
+      d.name.includes(value) || d.subs.some(s => s.includes(value))
+    );
     this.setData({
-      multiArray,
-      multiIndex
+      searchValue: value,
+      filteredDepartments: filtered.length ? filtered : this.data.departments,
+      selectedDept: 0
     });
   }
 });

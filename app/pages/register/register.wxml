@@ -10,7 +10,7 @@
     <text class="card-title">科室选择</text>
     <view class="card-content">
       <button class="action-btn" bindtap="goToDepartment">选择科室</button>
-      <picker mode="selector" range="{{departments}}" bindchange="onDeptChange" disabled="{{false}}">
+      <picker mode="selector" range="{{departments}}" bindchange="onDeptChange" disabled="true">
         <view class="picker-display">{{selectedDept || '请选择科室'}}</view>
       </picker>
     </view>

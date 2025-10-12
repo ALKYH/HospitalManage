@@ -1,29 +1,74 @@
 .container {
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background: #f6f8fa;
+  background: linear-gradient(to bottom right, #eef3f8, #fefefe);
 }
 
 .header {
-  margin-bottom: 40rpx;
+  padding: 20rpx 30rpx;
+  background: #fff;
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.08);
+  z-index: 10;
 }
 
-.title {
-  font-size: 36rpx;
+.search-input {
+  width: 100%;
+  background: #f3f5f7;
+  border-radius: 30rpx;
+  padding: 20rpx 30rpx;
+  font-size: 28rpx;
+  outline: none;
+}
+
+.menu {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.left-menu {
+  width: 35%;
+  background: #ffffff;
+  border-right: 1rpx solid #eee;
+}
+
+.right-menu {
+  flex: 1;
+  background: #f9fafb;
+  padding: 20rpx;
+}
+
+.menu-item {
+  padding: 30rpx 0;
+  text-align: center;
+  font-size: 30rpx;
+  color: #666;
+  border-bottom: 1rpx solid #f0f0f0;
+  transition: all 0.2s;
+}
+
+.menu-item.active {
+  background: linear-gradient(135deg, #007aff, #00c6ff);
+  color: white;
   font-weight: bold;
-  color: #333;
+  border-radius: 10rpx;
+  margin: 10rpx;
 }
 
-.picker-box {
-  background-color: #fff;
+.submenu-item {
+  background: white;
+  margin: 16rpx 0;
+  padding: 28rpx;
   border-radius: 16rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
-  padding: 40rpx;
-  width: 600rpx;
   text-align: center;
   color: #007aff;
   font-size: 30rpx;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+
+.submenu-item:active {
+  transform: scale(0.96);
+  background: #eaf4ff;
 }
