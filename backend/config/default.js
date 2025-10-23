@@ -5,5 +5,6 @@ module.exports = {
     password: process.env.DB_PASSWORD || '123456',
     database: process.env.DB_NAME || 'hospital'
   },
-  port: process.env.PORT || 3000
+  port: process.env.PORT || 3000,
+  jwtSecret: process.env.JWT_SECRET || 'change_this_secret'
 };

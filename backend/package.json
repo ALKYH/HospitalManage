@@ -4,7 +4,9 @@
   "description": "Hospital Registration Backend",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "ensure-db": "node scripts/ensure_db.js",
+    "dev": "node scripts/ensure_db.js && nodemon server.js"
   },
   "dependencies": {
     "express": "^4.18.2",

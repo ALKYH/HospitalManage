@@ -21,6 +21,7 @@
   </view>
 
   <button class="login-btn" bindtap="onLogin">登 录</button>
+  <button class="login-btn" bindtap="onRegister">注 册</button>
 
   <view class="link-area">
     <text class="link" bindtap="onRegister">注册账号</text>

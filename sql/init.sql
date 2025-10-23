@@ -73,7 +73,7 @@ CREATE TABLE doctor_availability (
 CREATE TABLE orders (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   account_id INT NOT NULL,     -- 谁下单（用户）
-  department_id INT NOT NULL,
+  department_id INT NULL,
   sub_department_id INT NULL,
   doctor_id INT NULL,          -- 若用户指定医生
   availability_id INT NULL,    -- 被分配的 availability id（若已分配）

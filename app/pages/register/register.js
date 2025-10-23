@@ -58,12 +58,39 @@ Page({
 
 
 
-  register: function() {
+  register: async function() {
+    const { request } = require('../../utils/request');
     if (this.data.selectedDoctor === '请选择医生') {
       this.setData({ message: '请选医生后再挂号' });
-    } else {
-      this.setData({ message: `挂号成功：${this.data.selectedDept} - ${this.data.selectedDoctor}-${this.data.selectedRegi}` });
-      
+      return;
+    }
+
+    // 临时从缓存中读取 account_id（实际需登录后写入）
+    const account_id = wx.getStorageSync('account_id') || 1;
+
+    const payload = {
+      account_id,
+      department_id: (this.data.selectedDept && this.data.selectedDept.id) ? this.data.selectedDept.id : null,
+      doctor_id: (this.data.selectedDoctor && this.data.selectedDoctor.id) ? this.data.selectedDoctor.id : null,
+      date: wx.getStorageSync('selectedDate') || null,
+      slot: this.data.selectedRegi || null,
+      note: ''
+    };
+
+    try {
+      const res = await request({ url: '/api/registration/create', method: 'POST', data: payload });
+      if (res && res.success) {
+        wx.showToast({ title: '挂号成功', icon: 'success' });
+        this.setData({ message: `挂号成功：${res.data.id} 状态:${res.data.status}` });
+      } else {
+        wx.showToast({ title: (res && res.message) ? res.message : '挂号失败', icon: 'none' });
+        this.setData({ message: (res && res.message) ? res.message : '挂号失败' });
+      }
+    } catch (err) {
+      console.error('register error', err);
+      const msg = (err && err.body && err.body.message) ? err.body.message : (err && err.error && err.error.errMsg) ? err.error.errMsg : '网络或服务错误';
+      wx.showToast({ title: msg, icon: 'none' });
+      this.setData({ message: msg });
     }
   }
 });

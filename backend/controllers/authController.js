@@ -5,9 +5,9 @@ const AuthController = {
     try {
       const { username, password } = req.body;
       const result = await AuthService.register(username, password);
-      res.status(201).json({ message: '注册成功', user: result });
+      res.status(201).json({ success: true, data: result, message: '注册成功' });
     } catch (err) {
-      res.status(400).json({ error: err.message });
+      res.status(400).json({ success: false, message: err.message });
     }
   },
 
@@ -16,10 +16,10 @@ const AuthController = {
       const { username, password } = req.body;
       console.log('Login attempt:', req.body.username);
       const result = await AuthService.login(username, password);
-      res.status(200).json({ message: '登录成功', ...result });
+      res.status(200).json({ success: true, data: result.data, message: '登录成功' });
     } catch (err) {
       console.log('Login error:', err.message);
-      res.status(401).json({ error: err.message });
+      res.status(401).json({ success: false, message: err.message });
     }
   }
 };

@@ -6,6 +6,13 @@ Page({
     password: ''
   },
 
+  onRegister() {
+    console.log("asdasdasd");
+    wx.navigateTo({
+      url: '/pages/accountRegister/accountRegister',
+    })
+  },
+
   onUsernameInput(e) {
     this.setData({ username: e.detail.value });
   },
@@ -48,9 +55,7 @@ Page({
   
   },
 
-  onRegister() {
-    wx.navigateTo({ url: '/pages/registerUser/registerUser' });
-  },
+
 
   onForgetPwd() {
     wx.navigateTo({ url: '/pages/forget/forget' });
