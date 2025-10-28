@@ -6,7 +6,7 @@
   <view class="menu">
     <!-- 左侧主科室 -->
     <scroll-view class="left-menu" scroll-y>
-      <block wx:for="{{filteredDepartments}}" wx:key="name">
+      <block wx:for="{{filteredDepartments}}" wx:key="id">
         <view 
           class="menu-item {{selectedDept === index ? 'active' : ''}}" 
           bindtap="onSelectDept" 
@@ -18,12 +18,12 @@
 
     <!-- 右侧子科室 -->
     <scroll-view class="right-menu" scroll-y>
-      <block wx:for="{{filteredDepartments[selectedDept].subs}}" wx:key="sub">
+      <block wx:for="{{filteredDepartments[selectedDept] && filteredDepartments[selectedDept].children}}" wx:key="id">
         <view 
           class="submenu-item" 
           bindtap="onSelectSub" 
           data-sub="{{item}}">
-          {{item}}
+          {{item.name}}
         </view>
       </block>
     </scroll-view>

@@ -25,7 +25,9 @@ exports.get = async (req, res) => {
 
 exports.list = async (req, res) => {
   try {
-    const rows = await doctorService.listDoctors();
+    const filters = {};
+    if (req.query && req.query.department_id) filters.department_id = req.query.department_id;
+    const rows = await doctorService.listDoctors(filters);
     res.json({ success: true, data: rows });
   } catch (err) {
     console.error(err);
@@ -38,6 +40,18 @@ exports.update = async (req, res) => {
     const id = req.params.id;
     const updated = await doctorService.updateDoctor(id, req.body || {});
     res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getAvailability = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const date = req.query.date || null;
+    const rows = await doctorService.getAvailabilityByDoctor(id, date);
+    res.json({ success: true, data: rows });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: err.message });

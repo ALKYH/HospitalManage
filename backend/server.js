@@ -8,6 +8,10 @@ const doctorRoutes = require('./routes/doctor');
 const mqRoutes = require('./routes/mq');
 const mq = require('./mq');
 const orderSubscriber = require('./mq/subscriber');
+const adminRoutes = require('./routes/admin');
+const path = require('path');
+const adminService = require('./services/adminService');
+const publicRoutes = require('./routes/public');
 
 const app = express();
 
@@ -20,6 +24,12 @@ app.use('/auth', authRoutes);
 app.use('/api/patient', patientRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/mq', mqRoutes);
+// Admin static UI
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
+// Admin API
+app.use('/api/admin', adminRoutes);
+// Public routes (no auth)
+app.use('/api', publicRoutes);
 
 // 可选：在开发环境中运行 ensure_db（检测表并导入 init.sql）
 if (process.env.ENSURE_DB === 'true') {
@@ -48,6 +58,14 @@ const ip = '0.0.0.0';
 // 启动过程：优先初始化 MQ 连接并注册基础订阅，然后启动 HTTP 服务
 (async () => {
   try {
+    // Ensure auxiliary admin tables exist before starting
+    try {
+      await adminService.ensureTables();
+      console.log('Admin auxiliary tables ensured');
+    } catch (tblErr) {
+      console.warn('Failed to ensure admin tables', tblErr.message);
+    }
+
     await mq.connect();
 
     // 注册一个通用的订单事件订阅（示例：只是打印并为后续扩展预留挂钩）

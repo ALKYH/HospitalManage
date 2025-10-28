@@ -1,21 +1,27 @@
 Page({
   data: {
-    departments: [
-      { name: '内科', subs: ['呼吸内科', '心血管内科', '消化内科', '内分泌科'] },
-      { name: '外科', subs: ['普外科', '骨科', '神经外科', '心胸外科'] },
-      { name: '儿科', subs: ['小儿内科', '小儿外科'] },
-      { name: '妇产科', subs: ['妇科', '产科'] },
-      { name: '五官科', subs: ['耳鼻喉科', '眼科', '口腔科'] }
-    ],
+    departments: [],
     filteredDepartments: [],
     selectedDept: 0,
     searchValue: ''
   },
 
   onLoad() {
-    this.setData({
-      filteredDepartments: this.data.departments
-    });
+    // fetch departments tree from backend
+    const { request } = require('../../utils/request');
+    request({ url: '/api/departments', method: 'GET' })
+      .then(res => {
+        if (res && res.success) {
+          const list = res.data || [];
+          this.setData({ departments: list, filteredDepartments: list });
+        } else {
+          this.setData({ departments: [], filteredDepartments: [] });
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load departments', err);
+        this.setData({ departments: [], filteredDepartments: [] });
+      });
   },
 
   onSelectDept(e) {
@@ -25,24 +31,20 @@ Page({
 
   onSelectSub(e) {
     const sub = e.currentTarget.dataset.sub;
-    const dept = this.data.filteredDepartments[this.data.selectedDept].name;
-    wx.showToast({
-      title: `${dept} - ${sub}`,
-      icon: 'success'
-    });
-    wx.setStorageSync('selectedDepartment', `${dept} - ${sub}`);
-    setTimeout(() => wx.navigateBack(), 800);
+    const deptObj = this.data.filteredDepartments[this.data.selectedDept];
+    const selected = { id: sub.id, name: sub.name, parent: { id: deptObj.id, name: deptObj.name } };
+    wx.setStorageSync('selectedDepartment', selected);
+    wx.showToast({ title: `已选择：${deptObj.name} - ${sub.name}`, icon: 'success' });
+    setTimeout(() => wx.navigateBack(), 600);
   },
 
   onSearchInput(e) {
     const value = e.detail.value.trim();
-    const filtered = this.data.departments.filter(d =>
-      d.name.includes(value) || d.subs.some(s => s.includes(value))
-    );
-    this.setData({
-      searchValue: value,
-      filteredDepartments: filtered.length ? filtered : this.data.departments,
-      selectedDept: 0
-    });
+    const list = this.data.departments || [];
+    const filtered = list.map(d => {
+      const matchedChildren = (d.children || []).filter(c => c.name.includes(value) || d.name.includes(value));
+      return Object.assign({}, d, { children: matchedChildren.length ? matchedChildren : d.children });
+    }).filter(d => d.name.includes(value) || (d.children && d.children.length));
+    this.setData({ searchValue: value, filteredDepartments: filtered.length ? filtered : list, selectedDept: 0 });
   }
 });

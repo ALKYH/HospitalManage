@@ -11,7 +11,7 @@
     <view class="card-content">
       <button class="action-btn" bindtap="goToDepartment">选择科室</button>
       <picker mode="selector" range="{{departments}}" bindchange="onDeptChange" disabled="true">
-        <view class="picker-display">{{selectedDept || '请选择科室'}}</view>
+        <view class="picker-display">{{selectedDept.name || '请选择科室'}}</view>
       </picker>
     </view>
   </view>
@@ -21,7 +21,7 @@
     <text class="card-title">医生选择</text>
     <view class="card-content">
       <picker mode="selector" range="{{doctors}}" bindchange="onDoctorChange">
-        <view class="picker-display">{{selectedDoctor || '请选择医生'}}</view>
+        <view class="picker-display">{{selectedDoctor.name || '请选择医生'}}</view>
       </picker>
     </view>
   </view>
@@ -33,6 +33,14 @@
       <picker mode="selector" range="{{registerRange}}" bindchange="onRegiChange">
         <view class="picker-display">{{selectedRegi || '请选择号别'}}</view>
       </picker>
+      <block wx:if="{{availableTypesList && availableTypesList.length}}">
+        <text class="sub-note">可用号源：</text>
+        <view class="types">
+          <block wx:for="{{availableTypesList}}" wx:key="type">
+            <view class="type-item">{{item.type}}: {{item.count}}</view>
+          </block>
+        </view>
+      </block>
     </view>
   </view>
 

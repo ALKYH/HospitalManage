@@ -1,0 +1,283 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Hospital Admin</title>
+  <style>
+    body{font-family:Arial; padding:20px; background:#f6f8fa}
+    .panel{border:1px solid #ddd;padding:12px;margin-bottom:12px;background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+    input,select{padding:6px;margin:6px 0;border:1px solid #ccc;border-radius:4px}
+    button{background:#007bff;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer}
+    button:hover{opacity:.9}
+    .card-title{font-weight:bold;margin-bottom:8px}
+    .doctor-row{padding:6px;border-bottom:1px dashed #eee}
+  </style>
+</head>
+<body>
+  <h1>Hospital 管理后台（Demo）</h1>
+  <div id="loginPanel" class="panel">
+    <h3>管理员登录</h3>
+    <input id="username" placeholder="username" />
+    <input id="password" placeholder="password" type="password" />
+    <button id="loginBtn">登录</button>
+    <div id="loginMsg"></div>
+  </div>
+
+  <div id="app" style="display:none">
+    <!-- tabs -->
+    <div class="panel">
+      <div style="display:flex;gap:12px;align-items:center">
+        <button class="tabBtn" data-tab="depts">科室</button>
+        <button class="tabBtn" data-tab="doctors">医生</button>
+        <button class="tabBtn" data-tab="schedules">排班/号源</button>
+        <div style="margin-left:auto;color:#666">提示：先创建科室，再添加医生；排班时先选科室再选医生。</div>
+      </div>
+    </div>
+
+    <div id="tab-depts" class="panel tabPanel">
+      <h3>科室管理</h3>
+      <div style="margin-bottom:8px">
+        <small>科室列表（表格） — 可以删除已有科室。删除将会删除与之直接关联的数据，请谨慎操作。</small>
+      </div>
+      <table id="deptsTable" border="1" cellpadding="6" style="width:100%;border-collapse:collapse;background:#fff">
+        <thead><tr><th>ID</th><th>名称</th><th>父科室</th><th>Code</th><th>操作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+
+      <div style="margin-top:10px">
+        <div><label>科室名</label><br/><input id="deptName" placeholder="科室名" /></div>
+        <div><label>Code（可选）</label><br/><input id="deptCode" placeholder="Code (可选)" /></div>
+        <div><label>父科室（可选）</label><br/><select id="deptParent"><option value="">无</option></select></div>
+        <div style="margin-top:8px"><button id="createDept">创建科室</button></div>
+      </div>
+    </div>
+
+    <div id="tab-doctors" class="panel tabPanel" style="display:none">
+      <h3>医生管理</h3>
+      <div><small>医生按科室分组，添加医生时请选择其所属科室。表格支持删除医生。</small></div>
+      <table id="doctorsTable" border="1" cellpadding="6" style="width:100%;border-collapse:collapse;background:#fff;margin-top:8px">
+        <thead><tr><th>ID</th><th>姓名</th><th>职称</th><th>科室</th><th>联系方式</th><th>操作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+
+      <div style="margin-top:10px">
+        <div><label>姓名</label><br/><input id="doctorName" placeholder="医生名" /></div>
+        <div><label>职称</label><br/><input id="doctorTitle" placeholder="职称" /></div>
+        <div><label>联系方式</label><br/><input id="doctorContact" placeholder="联系方式" /></div>
+        <div><label>所属科室</label><br/><select id="doctorDept"></select></div>
+        <div style="margin-top:8px"><button id="createDoctor">创建医生</button></div>
+      </div>
+    </div>
+
+    <div id="tab-schedules" class="panel tabPanel" style="display:none">
+      <h3>排班与号源设置</h3>
+      <div><small>先选择科室，再选择医生；选择日期与时段后设置各号别的容量。</small></div>
+
+      <div style="display:flex;gap:12px;margin-top:8px">
+        <div style="flex:1">
+          <label>科室</label><br/>
+          <select id="schedDept"><option value="">请选择科室</option></select>
+        </div>
+        <div style="flex:1">
+          <label>医生（仅显示所选科室医生）</label><br/>
+          <select id="availDoctor"><option value="">请选择医生</option></select>
+        </div>
+        <div style="flex:1">
+          <label>日期</label><br/>
+          <input id="availDate" type="date" />
+        </div>
+      </div>
+
+      <div style="margin-top:8px">
+        <label>选择时段（可多选）</label><br/>
+        <label><input type="checkbox" class="slotChk" value="8-10" /> 8:00-10:00</label>
+        <label><input type="checkbox" class="slotChk" value="10-12" /> 10:00-12:00</label>
+        <label><input type="checkbox" class="slotChk" value="14-16" /> 14:00-16:00</label>
+        <label><input type="checkbox" class="slotChk" value="16-18" /> 16:00-18:00</label>
+        <div><small>提示：如果需要自定义时段请在后台 API 中手动创建（当前界面提供常见时段选择）。</small></div>
+      </div>
+
+      <div style="margin-top:8px">
+        <h4>号源数量（按类型）</h4>
+        <div>普通：<input id="cap_normal" type="number" value="5" min="0" /></div>
+        <div>专家：<input id="cap_expert" type="number" value="2" min="0" /></div>
+        <div>特需：<input id="cap_vip" type="number" value="1" min="0" /></div>
+      </div>
+
+      <div style="margin-top:8px"><button id="saveAvailability">保存排班</button></div>
+
+      <div style="margin-top:16px">
+        <h4>已保存的排班（表格）</h4>
+        <table id="availTable" border="1" cellpadding="6" style="width:100%;border-collapse:collapse;background:#fff">
+          <thead><tr><th>ID</th><th>医生</th><th>科室</th><th>日期</th><th>时段</th><th>号源(类型:数量)</th><th>操作</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const api = (path, opts={})=>{
+      opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
+      const token = localStorage.getItem('admin_token');
+      if(token) opts.headers['Authorization'] = 'Bearer '+token;
+      if(opts.body && typeof opts.body !== 'string') opts.body = JSON.stringify(opts.body);
+      return fetch(path, opts).then(r=>{
+        try{ return r.json(); }catch(e){ return { success:false, message:'invalid json' }; }
+      });
+    };
+
+    // tabs wiring
+    function setupTabs(){
+      document.querySelectorAll('.tabBtn').forEach(b=>{
+        b.addEventListener('click', ()=>{
+          document.querySelectorAll('.tabPanel').forEach(p=>p.style.display='none');
+          document.querySelectorAll('.tabBtn').forEach(tb=>tb.style.opacity='1');
+          const t = b.dataset.tab;
+          document.getElementById('tab-'+t).style.display='block';
+          b.style.opacity = '.9';
+        });
+      });
+    }
+
+    document.getElementById('loginBtn').onclick = async ()=>{
+      const u=document.getElementById('username').value, p=document.getElementById('password').value;
+      const res = await api('/auth/login',{method:'POST', body:{ username:u, password:p }});
+      if(res && res.success){ localStorage.setItem('admin_token', res.token || (res.data && res.data.token)); document.getElementById('loginPanel').style.display='none'; document.getElementById('app').style.display='block'; setupTabs(); document.querySelector('.tabBtn[data-tab="depts"]').click(); await loadAll(); }
+      else document.getElementById('loginMsg').innerText = res.message || '登录失败';
+    };
+
+    // global caches
+    let deptsCache = [];
+    let doctorsCache = [];
+
+    async function loadAll(){
+      await loadDepts();
+      await loadDoctors();
+      await loadAvailabilities();
+    }
+
+    // departments
+    async function loadDepts(){
+      const res = await api('/api/admin/departments');
+      deptsCache = res.success ? res.data : [];
+      // fill table
+      const tbody = document.querySelector('#deptsTable tbody'); tbody.innerHTML='';
+      deptsCache.forEach(d=>{
+        const tr = document.createElement('tr');
+        const parent = deptsCache.find(x=>x.id==d.parent_id);
+        tr.innerHTML = `<td>${d.id}</td><td>${escapeHtml(d.name)}</td><td>${parent?escapeHtml(parent.name):''}</td><td>${escapeHtml(d.code||'')}</td><td><button data-id="${d.id}" class="delDept">删除</button></td>`;
+        tbody.appendChild(tr);
+      });
+      // selects
+      const psel = document.getElementById('deptParent'); psel.innerHTML='<option value="">无</option>';
+      const docDept = document.getElementById('doctorDept'); docDept.innerHTML='';
+      const schedDept = document.getElementById('schedDept'); schedDept.innerHTML='<option value="">请选择科室</option>';
+      deptsCache.forEach(d=>{ const o=document.createElement('option'); o.value=d.id; o.innerText=d.name; psel.appendChild(o); const o2=o.cloneNode(true); docDept.appendChild(o2); const o3=o.cloneNode(true); schedDept.appendChild(o3); });
+
+      // attach delete handlers
+      document.querySelectorAll('.delDept').forEach(btn=>btn.addEventListener('click', async ()=>{
+        const id = btn.dataset.id; if(!confirm('确认删除科室 ID='+id+' ?')) return;
+        const r = await api('/api/admin/departments/'+id,{method:'DELETE'});
+        if(r && r.success) await loadDepts(); else alert('删除失败: '+(r.message||JSON.stringify(r)));
+      }));
+    }
+
+    document.getElementById('createDept').onclick = async ()=>{
+      const name = document.getElementById('deptName').value.trim(); const code = document.getElementById('deptCode').value.trim(); const parent_id = document.getElementById('deptParent').value||null;
+      if(!name){ alert('请输入科室名'); return; }
+      await api('/api/admin/departments',{method:'POST', body:{ name, code, parent_id }});
+      document.getElementById('deptName').value=''; document.getElementById('deptCode').value=''; document.getElementById('deptParent').value='';
+      await loadDepts();
+    };
+
+    // doctors
+    async function loadDoctors(){
+      const res = await api('/api/admin/doctors');
+      doctorsCache = res.success ? res.data : [];
+      const tbody = document.querySelector('#doctorsTable tbody'); tbody.innerHTML='';
+      doctorsCache.forEach(d=>{
+        const dept = deptsCache.find(x=>x.id==d.department_id);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${d.id}</td><td>${escapeHtml(d.name)}</td><td>${escapeHtml(d.title||'')}</td><td>${dept?escapeHtml(dept.name):''}</td><td>${escapeHtml(d.contact||'')}</td><td><button data-id="${d.id}" class="delDoctor">删除</button></td>`;
+        tbody.appendChild(tr);
+      });
+
+      // fill doctor selectors
+      const availSel = document.getElementById('availDoctor'); availSel.innerHTML='<option value="">请选择医生</option>';
+      const docDept = document.getElementById('doctorDept'); if(docDept && docDept.options.length===0){ deptsCache.forEach(d=>{ const opt=document.createElement('option'); opt.value=d.id; opt.innerText=d.name; docDept.appendChild(opt); }); }
+      doctorsCache.forEach(d=>{ const opt=document.createElement('option'); opt.value=d.id; opt.innerText=d.name; availSel.appendChild(opt); });
+
+      // delete handlers
+      document.querySelectorAll('.delDoctor').forEach(btn=>btn.addEventListener('click', async ()=>{
+        const id = btn.dataset.id; if(!confirm('确认删除医生 ID='+id+' ?')) return;
+        const r = await api('/api/admin/doctors/'+id,{method:'DELETE'});
+        if(r && r.success) await loadDoctors(); else alert('删除失败: '+(r.message||JSON.stringify(r)));
+      }));
+    }
+
+    document.getElementById('createDoctor').onclick = async ()=>{
+      const name=document.getElementById('doctorName').value.trim(); const title=document.getElementById('doctorTitle').value.trim(); const contact=document.getElementById('doctorContact').value.trim(); const department_id=document.getElementById('doctorDept').value||null;
+      if(!name){ alert('请输入医生姓名'); return; }
+      await api('/api/admin/doctors',{method:'POST', body:{ name, title, contact, department_id }});
+      document.getElementById('doctorName').value=''; document.getElementById('doctorTitle').value=''; document.getElementById('doctorContact').value='';
+      await loadDoctors();
+    };
+
+    // schedules / availability
+    async function loadAvailabilities(){
+      const res = await api('/api/admin/availability');
+      const tbody = document.querySelector('#availTable tbody'); tbody.innerHTML='';
+      if(!(res && res.success)) return;
+      const rows = res.data;
+      rows.forEach(r=>{
+        const doc = doctorsCache.find(d=>d.id==r.doctor_id);
+        const dept = doc ? deptsCache.find(x=>x.id==doc.department_id) : null;
+        const types = r.extra && r.extra.capacity_types ? Object.entries(r.extra.capacity_types).map(([k,v])=>`${k}:${v}`).join(', ') : '';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.id}</td><td>${doc?escapeHtml(doc.name):''}</td><td>${dept?escapeHtml(dept.name):''}</td><td>${escapeHtml(r.date||'')}</td><td>${escapeHtml(r.slot||'')}</td><td>${escapeHtml(types)}</td><td><button data-id="${r.id}" class="delAvail">删除</button></td>`;
+        tbody.appendChild(tr);
+      });
+
+      document.querySelectorAll('.delAvail').forEach(btn=>btn.addEventListener('click', async ()=>{
+        const id = btn.dataset.id; if(!confirm('确认删除该排班 ID='+id+' ?')) return;
+        const r = await api('/api/admin/availability/'+id,{method:'DELETE'});
+        if(r && r.success) await loadAvailabilities(); else alert('删除失败: '+(r.message||JSON.stringify(r)));
+      }));
+    }
+
+    // when schedDept changes, filter availDoctor options to that dept
+    document.getElementById('schedDept').addEventListener('change', ()=>{
+      const deptId = document.getElementById('schedDept').value;
+      const sel = document.getElementById('availDoctor'); sel.innerHTML = '<option value="">请选择医生</option>';
+      doctorsCache.filter(d=>!deptId || String(d.department_id)===String(deptId)).forEach(d=>{
+        const o=document.createElement('option'); o.value=d.id; o.innerText=d.name; sel.appendChild(o);
+      });
+    });
+
+    document.getElementById('saveAvailability').onclick = async ()=>{
+      const doctor_id = document.getElementById('availDoctor').value;
+      const date = document.getElementById('availDate').value;
+      const slots = Array.from(document.querySelectorAll('.slotChk')).filter(c=>c.checked).map(c=>c.value);
+      if(!doctor_id || !date || slots.length===0){ alert('请选择科室/医生/日期/时段'); return; }
+      const capacity_types = { '普通': parseInt(document.getElementById('cap_normal').value||0,10), '专家': parseInt(document.getElementById('cap_expert').value||0,10), '特需': parseInt(document.getElementById('cap_vip').value||0,10) };
+      for(const slot of slots){
+        await api('/api/admin/availability',{method:'POST', body:{ doctor_id: parseInt(doctor_id,10), date, slot, capacity: Object.values(capacity_types).reduce((a,b)=>a+b,0), extra:{ capacity_types, booked_types: {} } }});
+      }
+      alert('排班已保存');
+      // refresh
+      await loadAvailabilities();
+    };
+
+    // small helper
+    function escapeHtml(s){ if(s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // initial load helpers
+    (async ()=>{
+      // if already logged in, show app
+      const token = localStorage.getItem('admin_token');
+      if(token){ document.getElementById('loginPanel').style.display='none'; document.getElementById('app').style.display='block'; setupTabs(); document.querySelector('.tabBtn[data-tab="depts"]').click(); await loadAll(); }
+    })();
+  </script>
+</body>
+</html>

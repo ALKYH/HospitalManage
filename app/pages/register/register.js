@@ -6,7 +6,10 @@ Page({
     selectedDept: '请选择科室',
     selectedDoctor: '请选择医生',
     selectedRegi:'请选择号别',
-    message: ''
+    message: '',
+    availability: [],
+    availableTypes: {},
+    availableTypesList: []
   },
   onShow() {
     const selected = wx.getStorageSync('selectedDepartment');
@@ -15,6 +18,8 @@ Page({
         selectedDept: selected
       });
       wx.removeStorageSync('selectedDepartment'); // 用完后清除缓存
+      // fetch doctors for this department
+      this.loadDoctorsForDept(selected.id);
     }
   },
   goToDepartment() {
@@ -36,12 +41,21 @@ Page({
       title: `已选择：${date}`,
       icon: 'success'
     })
-    // TODO: 这里可以根据日期查询医生排班
+    // 根据已选医生查询该医生该日期的可用排班
+    const doctor = this.data.selectedDoctor;
+    if (doctor && doctor.id) {
+      this.loadAvailability(doctor.id, date);
+    }
+    // 缓存选择的日期
+    wx.setStorageSync('selectedDate', date);
   },
   onDoctorSelected(e) {
     const { doctor } = e.detail;
     this.setData({ selectedDoctor: doctor });
     console.log('已选择医生:', doctor);
+    // load availability for default date or selectedDate
+    const date = wx.getStorageSync('selectedDate') || null;
+    if (date) this.loadAvailability(doctor.id, date);
   },
 
   onDeptChange: function(e) {
@@ -54,6 +68,45 @@ Page({
     this.setData({
       selectedDoctor: doctor
     });
+    const date = wx.getStorageSync('selectedDate') || null;
+    if (date) this.loadAvailability(doctor.id, date);
+  },
+
+  async loadDoctorsForDept(deptId) {
+    const { request } = require('../../utils/request');
+    try {
+      const res = await request({ url: `/api/doctor?department_id=${deptId}`, method: 'GET' });
+      if (res && res.success) {
+        this.setData({ doctors: res.data });
+      }
+    } catch (err) {
+      console.error('loadDoctorsForDept error', err);
+    }
+  },
+
+  async loadAvailability(doctorId, date) {
+    const { request } = require('../../utils/request');
+    try {
+      const url = `/api/doctor/${doctorId}/availability` + (date ? `?date=${date}` : '');
+      const res = await request({ url, method: 'GET' });
+      if (res && res.success) {
+        // map availability into selectable slots and available types
+        // 简单示例：把第一个 availability 的 available_by_type 转成选择项
+        const avail = res.data || [];
+        if (avail.length > 0) {
+          const first = avail[0];
+            // 把 available_by_type 转换为数组方便 WXML 渲染
+            const byType = first.available_by_type || {};
+            const availableTypesList = Object.keys(byType).map(k => ({ type: k, count: byType[k] }));
+            this.setData({ availability: avail, availableTypes: byType, availableTypesList });
+        } else {
+          this.setData({ availability: [], availableTypes: {} });
+            this.setData({ availability: [], availableTypes: {}, availableTypesList: [] });
+        }
+      }
+    } catch (err) {
+      console.error('loadAvailability error', err);
+    }
   },
 
 
