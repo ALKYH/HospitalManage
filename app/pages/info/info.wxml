@@ -1,40 +1,50 @@
-<!-- pages/profileForm/profileForm.wxml -->
 <view class="container">
 
-<!-- 顶部标题 -->
 <view class="header">
-  <text class="title">个人信息填写</text>
+  <text class="title">个人档案</text>
 </view>
 
-<!-- 选项卡切换 -->
-<view class="tab-bar">
-  <view 
-    class="tab-item {{role === 'student' ? 'active' : ''}}" 
-    bindtap="switchToStudent">
-    学生
-  </view>
-  <view 
-    class="tab-item {{role === 'teacher' ? 'active' : ''}}" 
-    bindtap="switchToTeacher">
-    教职工
-  </view>
+<!-- ✅ 当已有档案且未编辑时，显示档案卡片 -->
+<view wx:if="{{hasProfile && !editMode}}" class="profile-card">
+  <view class="info-item"><text>身份：</text>{{role === 'student' ? '学生' : '教职工'}}</view>
+  <view class="info-item"><text>{{role === 'student' ? '学号' : '工号'}}：</text>{{idNumber}}</view>
+  <view class="info-item"><text>姓名：</text>{{name}}</view>
+  <view class="info-item"><text>身份证号：</text>{{idCard}}</view>
+  <view class="info-item"><text>性别：</text>{{gender}}</view>
+  <view class="info-item"><text>既往病史：</text>{{history || '无'}}</view>
+
+  <button class="edit-btn" bindtap="enterEditMode">编辑档案</button>
 </view>
 
-<!-- 信息填写卡片 -->
-<view class="form-card">
+<!-- ✅ 否则显示原先填写表单 -->
+<view wx:else class="form-card">
+
+  <view class="tab-bar">
+    <view 
+      class="tab-item {{role === 'student' ? 'active' : ''}}" 
+      bindtap="switchToStudent">
+      学生
+    </view>
+    <view 
+      class="tab-item {{role === 'teacher' ? 'active' : ''}}" 
+      bindtap="switchToTeacher">
+      教职工
+    </view>
+  </view>
+
   <view class="input-group">
     <text class="label">{{role === 'student' ? '学号' : '工号'}}</text>
-    <input class="input" placeholder="请输入{{role === 'student' ? '学号' : '工号'}}" bindinput="onIDInput" />
+    <input class="input" value="{{idNumber}}" placeholder="请输入{{role === 'student' ? '学号' : '工号'}}" bindinput="onIDInput" />
   </view>
 
   <view class="input-group">
     <text class="label">姓名</text>
-    <input class="input" placeholder="请输入姓名" bindinput="onNameInput" />
+    <input class="input" value="{{name}}" placeholder="请输入姓名" bindinput="onNameInput" />
   </view>
 
   <view class="input-group">
     <text class="label">身份证号</text>
-    <input class="input" placeholder="请输入身份证号" bindinput="onIDCardInput" />
+    <input class="input" value="{{idCard}}" placeholder="请输入身份证号" bindinput="onIDCardInput" />
   </view>
 
   <view class="input-group">
@@ -46,7 +56,7 @@
 
   <view class="input-group">
     <text class="label">既往病史</text>
-    <textarea class="textarea" placeholder="请填写主要病史或健康状况" bindinput="onHistoryInput"></textarea>
+    <textarea class="textarea" value="{{history}}" placeholder="请填写主要病史或健康状况" bindinput="onHistoryInput"></textarea>
   </view>
 
   <button class="submit-btn" bindtap="onSubmit">保存信息</button>

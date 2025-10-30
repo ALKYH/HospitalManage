@@ -25,11 +25,16 @@ async function getProfileByAccountId(accountId) {
   return rows[0] || null;
 }
 
-function verifyAgainstStaffList({ name, idNumber }) {
-  console.log('Verifying against staff list:', { name, idNumber });
-  // 简单匹配 idNumber 或 name
-  if (!idNumber && !name) return false;
-  const found = staffList.find(s => (idNumber && s.idNumber === idNumber) || (name && s.name === name));
+function verifyAgainstStaffList({ employeeId, name, idNumber }) {
+  // 支持使用学工号(employeeId)、姓名(name)或身份证(idNumber)来验证
+  console.log('Verifying against staff list:', { employeeId, name, idNumber });
+  if (!employeeId && !idNumber && !name) return false;
+  const found = staffList.find(s => {
+    if (employeeId && s.employeeId && String(s.employeeId).trim() === String(employeeId).trim()) return true;
+    if (idNumber && s.idNumber && String(s.idNumber).trim() === String(idNumber).trim()) return true;
+    if (name && s.name && String(s.name).trim() === String(name).trim()) return true;
+    return false;
+  });
   return !!found;
 }
 
@@ -42,6 +47,14 @@ async function saveProfile(accountId, payload) {
       safe[k] = truncateIfNeeded(k, safe[k]);
     }
   });
+
+  // 规范化性别：前端可能提交 '男'/'女'，数据库 schema 使用 ENUM('M','F')
+  if (safe.gender) {
+    const g = String(safe.gender).trim();
+    if (g === '男' || g.toUpperCase() === 'M') safe.gender = 'M';
+    else if (g === '女' || g.toUpperCase() === 'F') safe.gender = 'F';
+    else safe.gender = null; // 不识别的值写入 null，避免插入非法 ENUM
+  }
 
   // debug log
   console.log('Saving profile for account', accountId, 'payload keys:', Object.keys(safe));
