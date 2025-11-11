@@ -225,8 +225,10 @@
     };
 
     // schedules / availability
-    async function loadAvailabilities(){
-      const res = await api('/api/admin/availability');
+    async function loadAvailabilities(doctorId){
+      // if doctorId provided, request per-doctor endpoint, otherwise list all
+      const url = doctorId ? `/api/admin/availability/${doctorId}` : '/api/admin/availability';
+      const res = await api(url);
       const tbody = document.querySelector('#availTable tbody'); tbody.innerHTML='';
       if(!(res && res.success)) return;
       const rows = res.data;
@@ -242,7 +244,11 @@
       document.querySelectorAll('.delAvail').forEach(btn=>btn.addEventListener('click', async ()=>{
         const id = btn.dataset.id; if(!confirm('确认删除该排班 ID='+id+' ?')) return;
         const r = await api('/api/admin/availability/'+id,{method:'DELETE'});
-        if(r && r.success) await loadAvailabilities(); else alert('删除失败: '+(r.message||JSON.stringify(r)));
+        if(r && r.success) {
+          // refresh current doctor view if any
+          const curDoc = document.getElementById('availDoctor').value;
+          await loadAvailabilities(curDoc || null);
+        } else alert('删除失败: '+(r.message||JSON.stringify(r)));
       }));
     }
 
@@ -253,6 +259,14 @@
       doctorsCache.filter(d=>!deptId || String(d.department_id)===String(deptId)).forEach(d=>{
         const o=document.createElement('option'); o.value=d.id; o.innerText=d.name; sel.appendChild(o);
       });
+      // clear availability table when changing dept
+      loadAvailabilities(null);
+    });
+
+    // when doctor selection changes, show that doctor's availabilities
+    document.getElementById('availDoctor').addEventListener('change', async ()=>{
+      const docId = document.getElementById('availDoctor').value;
+      await loadAvailabilities(docId || null);
     });
 
     document.getElementById('saveAvailability').onclick = async ()=>{
@@ -265,8 +279,8 @@
         await api('/api/admin/availability',{method:'POST', body:{ doctor_id: parseInt(doctor_id,10), date, slot, capacity: Object.values(capacity_types).reduce((a,b)=>a+b,0), extra:{ capacity_types, booked_types: {} } }});
       }
       alert('排班已保存');
-      // refresh
-      await loadAvailabilities();
+      // refresh current doctor's availabilities
+      await loadAvailabilities(doctor_id);
     };
 
     // small helper

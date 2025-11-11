@@ -77,6 +77,21 @@ exports.createOrUpdateAvailability = async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 
+exports.listAllAvailability = async (req, res) => {
+  try {
+    const rows = await adminService.listAllAvailability();
+    res.json({ success: true, data: rows });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+exports.deleteAvailability = async (req, res) => {
+  try {
+    const id = req.params.id;
+    await adminService.deleteAvailability(id);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
 // Fees
 exports.listFees = async (req, res) => {
   try {

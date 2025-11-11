@@ -85,6 +85,15 @@ async function getAvailabilityByDoctor(doctorId) {
   return rows;
 }
 
+async function listAllAvailability() {
+  const [rows] = await db.query('SELECT * FROM doctor_availability ORDER BY date, slot');
+  return rows;
+}
+
+async function deleteAvailability(id) {
+  await db.query('DELETE FROM doctor_availability WHERE id = ?', [id]);
+}
+
 async function createOrUpdateAvailability(payload) {
   // payload: { doctor_id, date, slot, capacity, extra }
   const { doctor_id, date, slot, capacity, extra } = payload;
@@ -150,7 +159,7 @@ module.exports = {
   ensureTables,
   listDepartments, createDepartment, updateDepartment, deleteDepartment,
   listDoctors, createDoctor, updateDoctor, deleteDoctor,
-  getAvailabilityByDoctor, createOrUpdateAvailability,
+  getAvailabilityByDoctor, listAllAvailability, deleteAvailability, createOrUpdateAvailability,
   listFees, setFee,
   listPendingDoctorReviews, approveDoctorProfile, rejectDoctorProfile,
   listLeaveRequests, setLeaveRequestStatus

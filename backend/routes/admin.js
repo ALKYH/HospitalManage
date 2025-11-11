@@ -20,8 +20,10 @@ router.put('/doctors/:id', adminController.updateDoctor);
 router.delete('/doctors/:id', adminController.deleteDoctor);
 
 // Availability (capacities per service type are stored in extra JSON)
+router.get('/availability', adminController.listAllAvailability); // list all availabilities
 router.get('/availability/:doctorId', adminController.getAvailabilityByDoctor);
 router.post('/availability', adminController.createOrUpdateAvailability);
+router.delete('/availability/:id', adminController.deleteAvailability);
 
 // Fees
 router.get('/fees', adminController.listFees);
