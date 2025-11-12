@@ -38,7 +38,18 @@ Page({
       const res = await request({ url: '/auth/login', method: 'POST', data: { username, password } });
       if (res && res.success) {
         const token = res.data && res.data.token;
+        const accountId = res.data && res.data.id;
         if (token) wx.setStorageSync('token', token);
+        if (accountId) wx.setStorageSync('account_id', accountId);
+        // try to fetch linked doctor record and cache doctor_id
+        try {
+          const { request } = require('../../utils/request');
+          const me = await request({ url: '/api/doctor/me', method: 'GET' });
+          if (me && me.success && me.data && me.data.id) {
+            wx.setStorageSync('doctor_id', me.data.id);
+            wx.setStorageSync('doctor', me.data);
+          }
+        } catch (e) { console.warn('fetch doctor me failed', e); }
         // goto doctor index
         wx.reLaunch({ url: '/pages/docIndex/docIndex' });
       } else {

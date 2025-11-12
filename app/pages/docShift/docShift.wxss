@@ -1,1 +1,173 @@
 /* pages/docShift/docShift.wxss */
+
+/* 页面整体布局 */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f3f9ff 0%, #e8f0fc 100%);
+  padding: 40rpx 28rpx 60rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+  font-family: "PingFang SC", sans-serif;
+}
+
+/* 控制区样式 */
+.controls {
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx 28rpx;
+  box-shadow: 0 10rpx 28rpx rgba(0, 90, 200, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+  flex-wrap: wrap;
+}
+
+.picker {
+  color: #1b2b44;
+  font-size: 28rpx;
+  background: #f8fbff;
+  border: 1rpx solid #dce8f6;
+  border-radius: 14rpx;
+  padding: 20rpx 26rpx;
+  flex-grow: 1;
+}
+
+/* 新增排班区 */
+.new {
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx 28rpx;
+  box-shadow: 0 10rpx 28rpx rgba(0, 90, 200, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.new view:first-child {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #0f2e5a;
+  border-left: 6rpx solid #4f9efc;
+  padding-left: 18rpx;
+}
+
+/* picker 与 input 一致的样式 */
+.new picker view,
+.new input {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  font-size: 28rpx;
+  color: #1b2b44;
+  background: #f9fcff;
+  border: 1rpx solid #dce8f6;
+  border-radius: 16rpx;
+  padding: 0 26rpx;
+  box-sizing: border-box;
+}
+
+.new input::placeholder {
+  color: #9fb3c8;
+}
+
+/* 列表区域 */
+.list {
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  box-shadow: 0 10rpx 28rpx rgba(0, 90, 200, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+/* 每一项排班 */
+.item {
+  background: #f8fbff;
+  border: 1rpx solid #e3edf7;
+  border-radius: 18rpx;
+  padding: 22rpx 26rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  transition: all 0.15s ease;
+}
+
+.item:hover {
+  border-color: #4f9efc;
+  box-shadow: 0 8rpx 20rpx rgba(79, 158, 252, 0.1);
+}
+
+/* 文字 */
+.item text {
+  font-size: 26rpx;
+  color: #18324a;
+}
+
+/* 按钮区域 */
+.actions {
+  display: flex;
+  gap: 20rpx;
+  justify-content: flex-end;
+}
+
+/* 通用按钮样式 */
+button {
+  border: none;
+  border-radius: 14rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #fff;
+  padding: 16rpx 0;
+  flex: 1;
+  transition: all 0.15s ease;
+  box-shadow: 0 10rpx 20rpx rgba(79, 158, 252, 0.15);
+}
+
+/* 控制区按钮（刷新/保存） */
+.controls button,
+.new button {
+  height: 88rpx;
+  background-image: linear-gradient(90deg, #4f9efc 0%, #6bd3ff 100%);
+}
+
+/* 删除 / 编辑按钮配色 */
+.actions button:first-child {
+  background-image: linear-gradient(90deg, #ff6f6f 0%, #f84444 100%);
+  box-shadow: 0 10rpx 20rpx rgba(255, 100, 100, 0.2);
+}
+.actions button:last-child {
+  background-image: linear-gradient(90deg, #60b7ff 0%, #3f94ff 100%);
+}
+
+/* 按钮点击反馈 */
+button:active {
+  transform: translateY(3rpx);
+  opacity: 0.95;
+}
+
+/* 空列表提示 */
+.list > view:not(.item) {
+  text-align: center;
+  color: #7c8fa6;
+  font-size: 26rpx;
+  padding: 30rpx 0;
+}
+
+/* 响应式适配 */
+@media (max-width: 340px) {
+  .controls, .new, .list {
+    padding: 24rpx;
+    border-radius: 18rpx;
+  }
+  .picker, input {
+    height: 80rpx;
+    font-size: 26rpx;
+  }
+  button {
+    font-size: 26rpx;
+  }
+}

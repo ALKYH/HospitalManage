@@ -57,6 +57,37 @@ exports.getRegistrationsForMe = async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ success: false, message: err.message }); }
 };
 
+// get registrations for a specific doctor id (access controlled)
+exports.getRegistrationsByDoctorId = async (req, res) => {
+  try {
+    const doctorId = parseInt(req.params.id, 10);
+    if (!doctorId) return res.status(400).json({ success: false, message: 'Invalid doctor id' });
+    const db = require('../db');
+    const requester = req.user && req.user.id;
+    const requesterRole = req.user && req.user.role;
+    // allow if admin
+    if (requesterRole !== 'admin') {
+      // otherwise requester must be the linked account for this doctor
+      const [docs] = await db.query('SELECT * FROM doctors WHERE id = ?', [doctorId]);
+      if (!docs || docs.length === 0) return res.status(404).json({ success: false, message: 'Doctor not found' });
+      const doc = docs[0];
+      if (doc.account_id !== requester) return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    const date = req.query.date;
+    let q = `SELECT o.*, a.username as account_username, p.display_name as patient_name, p.phone as patient_phone
+             FROM orders o
+             LEFT JOIN accounts a ON o.account_id = a.id
+             LEFT JOIN profiles p ON p.account_id = a.id
+             WHERE o.doctor_id = ?`;
+    const params = [doctorId];
+    if (date) { q += ' AND o.date = ?'; params.push(date); }
+    q += ' ORDER BY o.created_at DESC';
+    const [rows] = await db.query(q, params);
+    res.json({ success: true, data: rows });
+  } catch (err) { console.error('getRegistrationsByDoctorId err', err); res.status(500).json({ success: false, message: err.message }); }
+};
+
 // allow doctor to manage their own availability (create/update)
 exports.upsertAvailabilityForMe = async (req, res) => {
   try {

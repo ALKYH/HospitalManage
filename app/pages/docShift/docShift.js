@@ -45,11 +45,16 @@ Page({
     this.setData({ loading: true });
     const { request } = require('../../utils/request');
     try {
-      // get my doctor id
-      const me = await request({ url: '/api/doctor/me', method: 'GET' });
-      if (!me || !me.success) return this.setData({ message: '获取医生信息失败' });
-      const doctor = me.data;
-      const res = await request({ url: '/api/doctor/' + doctor.id + '/availability', method: 'GET' });
+      // prefer cached doctor_id to avoid extra call
+      const cachedDoctorId = wx.getStorageSync('doctor_id');
+      let doctorId = cachedDoctorId || null;
+      if (!doctorId) {
+        const me = await request({ url: '/api/doctor/me', method: 'GET' });
+        if (!me || !me.success) return this.setData({ message: '获取医生信息失败' });
+        doctorId = me.data && me.data.id;
+        if (doctorId) wx.setStorageSync('doctor_id', doctorId);
+      }
+      const res = await request({ url: '/api/doctor/' + doctorId + '/availability', method: 'GET' });
       if (res && res.success) {
         const list = res.data || [];
         const filtered = list.filter(it => !date || it.date === date);

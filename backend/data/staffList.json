@@ -1,5 +1,6 @@
 [
   { "employeeId": "E1001", "name": "张三", "idNumber": "320101199001011234", "department": "计算机学院" },
   { "employeeId": "E1002", "name": "李四", "idNumber": "320101198512129876", "department": "临床学院" },
-  { "employeeId": "E1003", "name": "王五", "idNumber": "320101197707077777", "department": "护理学院" }
+  { "employeeId": "E1003", "name": "王五", "idNumber": "320101197707077777", "department": "护理学院" },
+  { "employeeId": "E1004", "name": "赵六", "idNumber": "320101199001011234", "department": "药学学院" }
 ]

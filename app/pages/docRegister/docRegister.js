@@ -39,7 +39,11 @@ Page({
     this.setData({ loading: true });
     const { request } = require('../../utils/request');
     try {
-      const res = await request({ url: '/api/doctor/me/registrations?date=' + date, method: 'GET' });
+      // prefer fetching by cached doctor_id when available
+      const cachedDoctorId = wx.getStorageSync('doctor_id');
+      let url = '/api/doctor/me/registrations?date=' + date;
+      if (cachedDoctorId) url = `/api/doctor/${cachedDoctorId}/registrations?date=${date}`;
+      const res = await request({ url, method: 'GET' });
       if (res && res.success) {
         // normalize dates and display fields
         const regs = (res.data || []).map(r => ({

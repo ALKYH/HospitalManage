@@ -7,6 +7,7 @@ Page({
     name: '',
     idNumber: '',
     idCard: '',
+    phone: '',
     history: '',
     hasProfile: false, // 是否已有档案
     editMode: false    // 是否处于编辑状态
@@ -25,6 +26,7 @@ Page({
             name: p.display_name || '',
             idNumber: p.idcard || '',
             idCard: p.idcard || '',
+            phone: p.phone || '',
             gender: p.gender || '',
             history: (p.extra && p.extra.history) || '',
             role: (p.extra && p.extra.role) || this.data.role,
@@ -51,12 +53,13 @@ Page({
   onNameInput(e) { this.setData({ name: e.detail.value }); },
   onIDInput(e) { this.setData({ idNumber: e.detail.value }); },
   onIDCardInput(e) { this.setData({ idCard: e.detail.value }); },
+  onTelInput(e) { this.setData({ phone: e.detail.value }); },
   onGenderChange(e) { this.setData({ gender: this.data.genderOptions[e.detail.value] }); },
   onHistoryInput(e) { this.setData({ history: e.detail.value }); },
 
   onSubmit() {
-    const { idNumber, idCard, gender, history, role } = this.data;
-    if (!idNumber || !idCard || !gender) {
+    const { idNumber, idCard, gender, history, role, phone } = this.data;
+    if (!idNumber || !idCard || !gender || !phone) {
       wx.showToast({ title: '请填写完整信息', icon: 'none' });
       return;
     }
@@ -67,7 +70,7 @@ Page({
       idNumber,
       idcard: idCard,
       gender,
-      extra: { history, role }
+      extra: { history, role, phone }
     };
 
     wx.showLoading({ title: '保存中...' });
@@ -84,7 +87,7 @@ Page({
       .catch(err => {
         wx.hideLoading();
         console.error('保存失败', err);
-        wx.showToast({ title: '网络或服务错误', icon: 'none' });
+        wx.showToast({ title: '请核对信息是否正确', icon: 'none' });
       });
   },
 
