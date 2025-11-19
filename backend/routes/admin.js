@@ -42,5 +42,7 @@ router.post('/leave-requests/:id/reject', adminController.rejectLeaveRequest);
 
 // Debug: show all tables and basic metadata
 router.get('/tables', adminController.listAllTables);
+// Orders view for admin
+router.get('/orders', adminController.listOrders);
 
 module.exports = router;

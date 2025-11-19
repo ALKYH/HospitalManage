@@ -69,6 +69,22 @@ CREATE TABLE doctor_availability (
   FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
 );
 
+-- 支付表（payments）：保存模拟/真实支付记录
+CREATE TABLE payments (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  account_id INT NOT NULL,
+  order_id BIGINT NULL,
+  amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  currency VARCHAR(10) DEFAULT 'CNY',
+  status ENUM('created','paid','failed','refunded') DEFAULT 'created',
+  provider_info JSON NULL,
+  paid_at DATETIME NULL, --新增
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+);
+
+
 -- 6. 挂号订单（orders / registrations）
 CREATE TABLE orders (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -86,11 +102,13 @@ CREATE TABLE orders (
   note TEXT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  payment_id BIGINT NULL, --新增
   FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
   FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL,
   FOREIGN KEY (sub_department_id) REFERENCES departments(id) ON DELETE SET NULL,
   FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE SET NULL,
   FOREIGN KEY (availability_id) REFERENCES doctor_availability(id) ON DELETE SET NULL,
+  FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE SET NULL, --新增
   INDEX idx_account_status (account_id, status),
   INDEX idx_date_slot (date, slot)
 );

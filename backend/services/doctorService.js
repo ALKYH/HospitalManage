@@ -63,4 +63,4 @@ async function updateDoctor(id, payload) {
   return getDoctorById(id);
 }
 
-module.exports = { createDoctor, getDoctorById, listDoctors, updateDoctor };
+module.exports = { createDoctor, getDoctorById, listDoctors, getAvailabilityByDoctor, updateDoctor };

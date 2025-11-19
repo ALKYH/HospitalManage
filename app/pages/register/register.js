@@ -6,6 +6,8 @@ Page({
     selectedDept: '请选择科室',
     selectedDoctor: '请选择医生',
     selectedRegi:'请选择号别',
+    // normalized key used to filter availability (e.g. '普通','专家','特需')
+    selectedRegiKey: '',
     message: '',
     availability: [],
     availableTypes: {},
@@ -30,9 +32,9 @@ Page({
   onRegiChange: function(e) {
     const index = e.detail.value;
     const regi = this.data.registerRange[index];
-    this.setData({
-      selectedRegi: regi,
-    });
+    // normalize to key without the trailing '号'
+    const key = (regi || '').replace(/号$/, '').trim();
+    this.setData({ selectedRegi: regi, selectedRegiKey: key });
   },
   // handle timeSelected event from register-date-picker component
   onTimeSelected(e) {
@@ -41,9 +43,10 @@ Page({
       wx.showToast({ title: `已选择：${date}` });
       // map time label to internal slot enum used by backend
       const map = {
-        '上午 08:00-12:00': '8-10',
-        '下午 13:00-17:00': '14-16',
-        '晚上 18:00-21:00': '16-18'
+        '上午 08:00-10:00': '8-10',
+        '上午 10:00-12:00': '10-12',
+        '下午 14:00-16:00': '14-16',
+        '下午 16:00-18:00': '16-18'
       };
       const slot = map[time] || null;
       this.setData({ selectedDate: date, selectedSlot: slot });
@@ -133,14 +136,22 @@ Page({
       date: this.data.selectedDate || wx.getStorageSync('selectedDate') || null,
       // slot should be a time-slot enum (e.g. '8-10'), choose selectedSlot (from date picker) first
       slot: this.data.selectedSlot || wx.getStorageSync('selectedSlot') || null,
-      note: ''
+      note: '',
+      regi_type: this.data.selectedRegi
     };
 
     try {
       const res = await request({ url: '/api/registration/create', method: 'POST', data: payload });
       if (res && res.success) {
+        // 挂号后直接跳转到支付页面（若后端返回了 payment 对象）
+        if (res.payment && res.payment.id) {
+          wx.navigateTo({ url: `/pages/payment/payment?payment_id=${res.payment.id}` });
+          return;
+        }
         wx.showToast({ title: '挂号成功', icon: 'success' });
         this.setData({ message: `挂号成功：${res.data.id} 状态:${res.data.status}` });
+        // 跳转到订单页
+        wx.navigateTo({ url: '/pages/orders/orders' });
       } else {
         wx.showToast({ title: (res && res.message) ? res.message : '挂号失败', icon: 'none' });
         this.setData({ message: (res && res.message) ? res.message : '挂号失败' });

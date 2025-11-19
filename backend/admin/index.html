@@ -30,6 +30,7 @@
         <button class="tabBtn" data-tab="depts">科室</button>
         <button class="tabBtn" data-tab="doctors">医生</button>
         <button class="tabBtn" data-tab="schedules">排班/号源</button>
+  <button class="tabBtn" data-tab="orders">订单</button>
         <div style="margin-left:auto;color:#666">提示：先创建科室，再添加医生；排班时先选科室再选医生。</div>
       </div>
     </div>
@@ -114,6 +115,20 @@
         </table>
       </div>
     </div>
+    <div id="tab-orders" class="panel tabPanel" style="display:none">
+      <h3>订单管理</h3>
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
+        <div>医生: <select id="ordersDoctor"><option value="">全部</option></select></div>
+        <div>日期: <input id="ordersDate" type="date" /></div>
+        <div>状态: <select id="ordersStatus"><option value="">全部</option><option value="pending">pending</option><option value="confirmed">confirmed</option><option value="waiting">waiting</option><option value="cancelled">cancelled</option><option value="completed">completed</option></select></div>
+        <div><button id="refreshOrders">刷新</button></div>
+      </div>
+
+      <table id="ordersTable" border="1" cellpadding="6" style="width:100%;border-collapse:collapse;background:#fff;margin-top:8px">
+        <thead><tr><th>ID</th><th>账户</th><th>医生</th><th>科室</th><th>日期</th><th>时段</th><th>状态</th><th>候补</th><th>支付</th><th>操作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 
   <script>
@@ -143,6 +158,8 @@
           const t = b.dataset.tab;
           document.getElementById('tab-'+t).style.display='block';
           b.style.opacity = '.9';
+            // if orders tab opened, refresh orders
+            if (t === 'orders') loadOrders();
         });
       });
     }
@@ -215,6 +232,9 @@
       const docDept = document.getElementById('doctorDept'); if(docDept && docDept.options.length===0){ deptsCache.forEach(d=>{ const opt=document.createElement('option'); opt.value=d.id; opt.innerText=d.name; docDept.appendChild(opt); }); }
       doctorsCache.forEach(d=>{ const opt=document.createElement('option'); opt.value=d.id; opt.innerText=d.name; availSel.appendChild(opt); });
 
+  // also populate ordersDoctor selector
+  const ordersDoctorSel = document.getElementById('ordersDoctor'); if(ordersDoctorSel){ ordersDoctorSel.innerHTML = '<option value="">全部</option>'; doctorsCache.forEach(d=>{ const o=document.createElement('option'); o.value=d.id; o.innerText=d.name; ordersDoctorSel.appendChild(o); }); }
+
       // set password handlers
       document.querySelectorAll('.setPwd').forEach(btn=>btn.addEventListener('click', async ()=>{
         const id = btn.dataset.id;
@@ -270,6 +290,36 @@
         } else alert('删除失败: '+(r.message||JSON.stringify(r)));
       }));
     }
+
+    // orders
+    async function loadOrders(){
+      const doctorSel = document.getElementById('ordersDoctor');
+      const doctorId = doctorSel ? doctorSel.value : null;
+      const date = document.getElementById('ordersDate').value || null;
+      const status = document.getElementById('ordersStatus').value || null;
+      const params = [];
+      let q = '/api/admin/orders?';
+      if(doctorId) q += 'doctor_id='+encodeURIComponent(doctorId)+'&';
+      if(date) q += 'date='+encodeURIComponent(date)+'&';
+      if(status) q += 'status='+encodeURIComponent(status)+'&';
+      const res = await api(q);
+      const tbody = document.querySelector('#ordersTable tbody'); tbody.innerHTML='';
+      if(!(res && res.success)) return;
+      res.data.forEach(o=>{
+        const tr = document.createElement('tr');
+        const waitInfo = o.is_waitlist ? ('pos:'+((o.wait_position||0)+1)+'/'+(o.wait_total||0)) : '';
+        tr.innerHTML = `<td>${o.id}</td><td>${escapeHtml(o.account_id)}</td><td>${escapeHtml(o.doctor_name||o.doctor_id)}</td><td>${escapeHtml(o.department_name||'')}</td><td>${escapeHtml(o.date)}</td><td>${escapeHtml(o.slot)}</td><td>${escapeHtml(o.status)}</td><td>${escapeHtml(waitInfo)}</td><td>${escapeHtml(o.payment_amount||'')}</td><td><button data-id="${o.id}" class="adminCancel">取消</button></td>`;
+        tbody.appendChild(tr);
+      });
+
+      document.querySelectorAll('.adminCancel').forEach(btn=>btn.addEventListener('click', async ()=>{
+        const id = btn.dataset.id; if(!confirm('确认取消订单 ID='+id+' ?')) return;
+        const r = await api('/api/registration/cancel',{method:'POST', body:{ order_id: id }});
+        if(r && r.success) { alert('已取消'); await loadOrders(); } else alert('取消失败: '+(r.message||JSON.stringify(r)));
+      }));
+    }
+
+    document.getElementById('refreshOrders').addEventListener('click', ()=> loadOrders());
 
     // when schedDept changes, filter availDoctor options to that dept
     document.getElementById('schedDept').addEventListener('change', ()=>{

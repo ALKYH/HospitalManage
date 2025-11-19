@@ -1,0 +1,113 @@
+/* pages/payment/payment.wxss */
+
+.container {
+  min-height: 100vh;
+  background-color: #F6F7F9;
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+/* 加载提示 */
+.loading {
+  text-align: center;
+  margin-top: 200rpx;
+  color: #8A8A8A;
+  font-size: 30rpx;
+}
+
+/* 金额区域 */
+.amount-box {
+  margin-top: 40rpx;
+  text-align: center;
+}
+
+.amount {
+  font-size: 80rpx;
+  color: #202020;
+  font-weight: 700;
+}
+
+.amount-label {
+  margin-top: 10rpx;
+  color: #888;
+  font-size: 28rpx;
+}
+
+/* 信息卡片 */
+.info-card {
+  margin-top: 40rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 36rpx;
+  box-shadow: 0 6rpx 20rpx rgba(0,0,0,0.06);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 24rpx 0;
+  border-bottom: 1px solid #EFEFEF;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.label {
+  color: #555;
+  font-size: 30rpx;
+}
+
+.value {
+  color: #333;
+  font-size: 30rpx;
+}
+
+/* 状态颜色 */
+.status-paid {
+  color: #34A853;
+  font-weight: 600;
+}
+
+.status-pending {
+  color: #F4A100;
+  font-weight: 600;
+}
+
+/* 底部支付按钮区 */
+.bottom-area {
+  margin-top: 80rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.pay-btn {
+  width: 80%;
+  height: 90rpx;
+  background-color: #07C160;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 50rpx;
+  line-height: 90rpx;
+  text-align: center;
+}
+
+/* 支付成功样式 */
+.success-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.success-icon {
+  width: 120rpx;
+  height: 120rpx;
+  margin-bottom: 20rpx;
+}
+
+.success-text {
+  font-size: 36rpx;
+  color: #34A853;
+  font-weight: 700;
+}

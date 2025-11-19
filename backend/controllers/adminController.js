@@ -177,3 +177,31 @@ exports.listAllTables = async (req, res) => {
     res.json({ success: true, data: rows, database: config.db.database });
   } catch (err) { console.error('listAllTables err', err); res.status(500).json({ success: false, message: err.message }); }
 };
+
+// Admin: list orders with basic joins
+exports.listOrders = async (req, res) => {
+  try {
+    const db = require('../db');
+    // optional filters via query: doctor_id, date, status
+    const { doctor_id, date, status } = req.query;
+  let sql = `SELECT o.*, p.amount as payment_amount, p.status as payment_status, p.paid_at as payment_paid_at, d.name as doctor_name, dept.name as department_name,
+                CASE WHEN o.is_waitlist = 1 THEN (
+                  SELECT COUNT(1) FROM orders w WHERE w.doctor_id = o.doctor_id AND w.date = o.date AND w.status = 'waiting' AND w.is_waitlist = 1 AND w.created_at < o.created_at
+                ) ELSE 0 END as wait_position,
+                CASE WHEN o.is_waitlist = 1 THEN (
+                  SELECT COUNT(1) FROM orders w WHERE w.doctor_id = o.doctor_id AND w.date = o.date AND w.status = 'waiting' AND w.is_waitlist = 1
+                ) ELSE 0 END as wait_total
+               FROM orders o
+               LEFT JOIN payments p ON o.payment_id = p.id
+               LEFT JOIN doctors d ON o.doctor_id = d.id
+               LEFT JOIN departments dept ON d.department_id = dept.id
+               WHERE 1=1`;
+    const params = [];
+    if (doctor_id) { sql += ' AND o.doctor_id = ?'; params.push(doctor_id); }
+    if (date) { sql += ' AND o.date = ?'; params.push(date); }
+    if (status) { sql += ' AND o.status = ?'; params.push(status); }
+    sql += ' ORDER BY o.created_at DESC LIMIT 500';
+    const [rows] = await db.query(sql, params);
+    res.json({ success: true, data: rows });
+  } catch (err) { console.error('listOrders err', err); res.status(500).json({ success: false, message: err.message }); }
+};

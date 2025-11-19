@@ -21,6 +21,21 @@ async function ensure() {
     const [rows] = await conn.query("SHOW TABLES LIKE 'accounts';");
     if (rows.length > 0) {
       console.log('DB already initialized.');
+      // perform lightweight migrations if needed (e.g., add paid_at to payments)
+      try {
+        const [prows] = await conn.query("SHOW TABLES LIKE 'payments';");
+        if (prows.length > 0) {
+          const [cols] = await conn.query("SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema = ? AND table_name = 'payments'", [config.db.database]);
+          const colNames = (cols || []).map(c => c.COLUMN_NAME);
+          if (!colNames.includes('paid_at')) {
+            console.log('Adding paid_at column to payments table...');
+            await conn.query('ALTER TABLE payments ADD COLUMN paid_at DATETIME NULL AFTER provider_info');
+            console.log('paid_at column added to payments');
+          }
+        }
+      } catch (merr) {
+        console.warn('Migration check failed', merr.message);
+      }
       return;
     }
 

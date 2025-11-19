@@ -1,0 +1,39 @@
+<!-- pages/orders/orders.wxml -->
+<view class="container">
+
+<view wx:if="{{message}}">
+  {{message}}
+</view>
+
+<block wx:for="{{orders}}" wx:for-item="item" wx:key="id">
+  <view class="order-item">
+    <view>订单ID：{{item.id}}</view>
+    <view>医生：{{item.doctor_id}}</view>
+    <view>日期/时段：{{item.date}} {{item.slot}}</view>
+    <view>状态：{{item.status}}</view>
+
+    <view wx:if="{{item.payment_id}}">
+      支付：¥{{item.payment_amount}} （{{item.payment_status}}）
+      <block wx:if="{{item.payment_paid_at}}">
+        支付时间：{{item.payment_paid_at}}
+      </block>
+    </view>
+
+    <view wx:if="{{!item.payment_id}}">
+      支付：无需支付 / 已包含
+    </view>
+
+    <view wx:if="{{item.is_waitlist}}">
+      候补位置：{{item.wait_position + 1}} / {{item.wait_total}}
+    </view>
+
+    <button wx:if="{{item.payment_id && item.payment_status!='paid'}}" bindtap="onPay" data-id="{{item.payment_id}}">去支付</button>
+    <button wx:if="{{item.status!='cancelled' && item.status!='completed'}}" bindtap="onCancel" data-id="{{item.id}}">退号</button>
+  </view>
+</block>
+
+<view wx:if="{{!orders || orders.length === 0}}">
+  暂无订单
+</view>
+
+</view>

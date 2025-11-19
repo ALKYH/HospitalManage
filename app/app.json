@@ -14,7 +14,10 @@
     "pages/docRegister/docRegister",
     "pages/docAccount/docAccount",
     "pages/docIndex/docIndex",
-    "pages/docShift/docShift"
+    "pages/docShift/docShift",
+    "pages/orders/orders",
+    "pages/payment/payment",
+    "pages/appointment/appointment"
   ],
   "window": {
     "backgroundTextStyle": "light",

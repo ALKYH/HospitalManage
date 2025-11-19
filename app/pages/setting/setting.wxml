@@ -27,14 +27,6 @@
       <image class="item-arrow" src="/images/icon-arrow-right.png"></image>
     </view>
     
-    <view class="setting-item" bindtap="navigateToSecurity">
-      <view class="item-left">
-        <image class="item-icon" src="/images/icon-security.png"></image>
-        <text class="item-text">账号安全</text>
-      </view>
-      <image class="item-arrow" src="/images/icon-arrow-right.png"></image>
-    </view>
-    
     <view class="setting-item" bindtap="navigateToPrivacy">
       <view class="item-left">
         <image class="item-icon" src="/images/icon-privacy.png"></image>
@@ -80,27 +72,8 @@
   <view class="settings-section">
     <view class="section-title">其他</view>
     
-    <view class="setting-item" bindtap="clearCache">
-      <view class="item-left">
-        <image class="item-icon" src="/images/icon-cache.png"></image>
-        <text class="item-text">清除缓存</text>
-      </view>
-      <view class="item-right">
-        <text class="cache-size">{{cacheSize}}</text>
-        <image class="item-arrow" src="/images/icon-arrow-right.png"></image>
-      </view>
-    </view>
-    
-    <view class="setting-item" bindtap="checkUpdate">
-      <view class="item-left">
-        <image class="item-icon" src="/images/icon-update.png"></image>
-        <text class="item-text">检查更新</text>
-      </view>
-      <view class="item-right">
-        <text class="version-text">v{{appVersion}}</text>
-        <image class="item-arrow" src="/images/icon-arrow-right.png"></image>
-      </view>
-    </view>
+ 
+
     
     <view class="setting-item" bindtap="showAbout">
       <view class="item-left">

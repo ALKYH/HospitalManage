@@ -120,15 +120,44 @@ async function deleteAvailability(id) {
 async function createOrUpdateAvailability(payload) {
   // payload: { doctor_id, date, slot, capacity, extra }
   const { doctor_id, date, slot, capacity, extra } = payload;
-  const [rows] = await db.query('SELECT * FROM doctor_availability WHERE doctor_id = ? AND date = ? AND slot = ?', [doctor_id, date, slot]);
-  if (rows.length > 0) {
-    await db.query('UPDATE doctor_availability SET capacity = ?, extra = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [capacity, JSON.stringify(extra || {}), rows[0].id]);
-    const [r2] = await db.query('SELECT * FROM doctor_availability WHERE id = ?', [rows[0].id]);
-    return r2[0];
-  } else {
-    const [r] = await db.query('INSERT INTO doctor_availability (doctor_id, date, slot, capacity, booked, extra) VALUES (?, ?, ?, ?, 0, ?)', [doctor_id, date, slot, capacity || 1, JSON.stringify(extra || {})]);
-    const [r2] = await db.query('SELECT * FROM doctor_availability WHERE id = ?', [r.insertId]);
-    return r2[0];
+  // We'll upsert the specific slot entry, then sync the day-level capacity to all availabilities for that doctor/date.
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    // lock all avail rows for the doctor/date to avoid races
+    const [rows] = await conn.query('SELECT * FROM doctor_availability WHERE doctor_id = ? AND date = ? FOR UPDATE', [doctor_id, date]);
+    if (rows.length > 0) {
+      // check if slot exists
+      const existing = rows.find(r => r.slot === slot);
+      if (existing) {
+        await conn.query('UPDATE doctor_availability SET capacity = ?, extra = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [capacity, JSON.stringify(extra || {}), existing.id]);
+      } else {
+        // insert new slot, but use day-level capacity to keep consistency
+        const dayCap = capacity || rows[0].capacity || 1;
+        await conn.query('INSERT INTO doctor_availability (doctor_id, date, slot, capacity, booked, extra) VALUES (?, ?, ?, ?, ?, ?)', [doctor_id, date, slot, dayCap, rows[0].booked || 0, JSON.stringify(extra || {})]);
+      }
+
+      // sync capacity and extra.booked_types if provided to all rows for that date
+      const dayCapacity = capacity || rows[0].capacity || 1;
+      await conn.query('UPDATE doctor_availability SET capacity = ?, extra = ? WHERE doctor_id = ? AND date = ?', [dayCapacity, JSON.stringify(extra || {}), doctor_id, date]);
+
+      // return all availabilities for that doctor/date (caller can decide)
+      const [r2] = await conn.query('SELECT * FROM doctor_availability WHERE doctor_id = ? AND date = ? ORDER BY slot', [doctor_id, date]);
+      await conn.commit();
+      return r2;
+    } else {
+      // no existing rows for that doctor/date: insert the slot record with provided capacity
+      const cap = capacity || 1;
+      const [r] = await conn.query('INSERT INTO doctor_availability (doctor_id, date, slot, capacity, booked, extra) VALUES (?, ?, ?, ?, 0, ?)', [doctor_id, date, slot, cap, JSON.stringify(extra || {})]);
+      const [r2] = await conn.query('SELECT * FROM doctor_availability WHERE id = ?', [r.insertId]);
+      await conn.commit();
+      return [r2[0]];
+    }
+  } catch (err) {
+    try { await conn.rollback(); } catch(e){}
+    throw err;
+  } finally {
+    conn.release();
   }
 }
 

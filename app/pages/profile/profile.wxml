@@ -11,9 +11,9 @@
       <text class="card-text">个人信息</text>
       
     </view>
-    <view class="card" bindtap="onClick" data-action="历史查询">
+    <view class="card" bindtap="onClick" data-action="我的挂号">
       <image class="card-icon" src="../../assets/search.png"></image>
-      <text class="card-text">历史查询</text>
+      <text class="card-text">我的挂号</text>
     </view>
     <view class="card" bindtap="onClick" data-action="我的预约">
       <image class="card-icon" src="../../assets/appointment.png"></image>

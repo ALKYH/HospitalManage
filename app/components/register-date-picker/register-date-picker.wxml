@@ -1,10 +1,10 @@
 <view class="picker-container">
   <view class="picker-title">请选择就诊时间：</view>
 
-  <!-- 日期选择器 -->
-  <picker mode="date" start="{{today}}" value="{{selectedDate}}" bindchange="onDateChange">
+  <!-- 日期选择器（仅显示有排班的日期） -->
+  <picker mode="selector" range="{{dates}}" value="{{selectedDateIndex}}" bindchange="onDateChange">
     <view class="picker-display">
-      <text>{{ selectedDate || '点击选择日期' }}</text>
+      <text>{{ dates[selectedDateIndex] || '点击选择日期' }}</text>
       <text class="arrow">▼</text>
     </view>
   </picker>

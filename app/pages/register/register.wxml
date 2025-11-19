@@ -48,7 +48,7 @@
   <view class="card">
     <text class="card-title">就诊日期与时间</text>
     <view class="card-content">
-      <register-date-picker bind:timeSelected="onTimeSelected" />
+  <register-date-picker availability="{{availability}}" regiType="{{selectedRegiKey}}" bind:timeSelected="onTimeSelected" />
     </view>
   </view>
 

@@ -26,12 +26,12 @@ Page({
         url = '/pages/info/info';
         break;
 
-      case '历史查询':
+      case '我的挂号':
         if (!this.data.logged) {
           this.showLoginPrompt();
           return;
         }
-        url = '/pages/appointment/appointment';
+        url = '/pages/orders/orders';
         break;
 
       case '我的预约':
@@ -39,7 +39,7 @@ Page({
           this.showLoginPrompt();
           return;
         }
-        url = '/pages/health/health';
+        url = '/pages/appointment/appointment';
         break;
 
         case '医生登录':

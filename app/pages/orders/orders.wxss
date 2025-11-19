@@ -1,0 +1,61 @@
+/* pages/orders/orders.wxss */
+
+/* 页面背景 */
+.container {
+  min-height: 100vh;
+  padding: 40rpx;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #f5faff 0%, #e8f2ff 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+}
+
+/* 顶部提示消息 */
+.container > view:first-child {
+  font-size: 30rpx;
+  color: #4a5c73;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 20rpx 28rpx;
+  border-radius: 20rpx;
+  border-left: 8rpx solid #4f9efc;
+  box-shadow: 0 6rpx 20rpx rgba(0, 90, 200, 0.08);
+}
+
+/* 订单卡片 */
+.order-item {
+  background: #ffffff;
+  padding: 36rpx 34rpx;
+  border-radius: 26rpx;
+  box-shadow: 0 12rpx 36rpx rgba(0, 90, 200, 0.08);
+  border: 1rpx solid rgba(0, 0, 0, 0.04);
+  animation: fadeIn 0.25s ease;
+}
+
+/* 每行文字 */
+.order-item view {
+  font-size: 30rpx;
+  color: #2a4368;
+  margin-bottom: 14rpx;
+  font-weight: 500;
+}
+
+/* 支付状态 */
+.order-item view:nth-last-child(1) {
+  margin-top: 20rpx;
+  color: #4b5c7a;
+}
+
+/* 空订单提示 */
+.container > view:last-child {
+  text-align: center;
+  margin-top: 80rpx;
+  color: #7f8c99;
+  font-size: 30rpx;
+}
+
+/* 入场动画 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(24rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}

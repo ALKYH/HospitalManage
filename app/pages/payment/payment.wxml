@@ -1,0 +1,53 @@
+<!-- pages/payment/payment.wxml -->
+<view class="container">
+
+<!-- 加载状态 -->
+<view wx:if="{{!payment}}" class="loading">
+  加载中或未找到支付单...
+</view>
+
+<!-- 支付内容区 -->
+<view wx:if="{{payment}}">
+
+  <!-- 金额区域 -->
+  <view class="amount-box">
+    <view class="amount">
+      ¥{{payment.amount}}
+    </view>
+    <view class="amount-label">需支付金额</view>
+  </view>
+
+  <!-- 订单信息卡片 -->
+  <view class="info-card">
+    <view class="row">
+      <text class="label">支付单号</text>
+      <text class="value">{{payment.id}}</text>
+    </view>
+    <view class="row">
+      <text class="label">状态</text>
+      <text class="value status-{{payment.status}}">
+        {{payment.status=='paid'?'已支付':'待支付'}}
+      </text>
+    </view>
+  </view>
+
+  <!-- 底部按钮区 -->
+  <view class="bottom-area">
+
+    <!-- 待支付 -->
+    <button wx:if="{{payment.status!='paid'}}"
+            class="pay-btn"
+            bindtap="doSimulatePay">
+      立即支付
+    </button>
+
+    <!-- 已支付 -->
+    <view wx:if="{{payment.status=='paid'}}" class="success-box">
+      <image src="/assets/success.png" class="success-icon"/>
+      <text class="success-text">支付成功</text>
+    </view>
+  </view>
+
+</view>
+
+</view>
