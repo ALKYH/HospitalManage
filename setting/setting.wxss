@@ -1,0 +1,166 @@
+/* pages/setting/setting.wxss */
+/* account-management.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #f5f6fa;
+  padding: 20rpx;
+}
+
+/* 用户卡片样式 */
+.user-card {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  border-radius: 20rpx;
+  padding: 40rpx 30rpx;
+  margin-bottom: 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 10rpx 30rpx rgba(106, 17, 203, 0.2);
+  color: white;
+}
+
+.user-avatar-section {
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+  margin-right: 24rpx;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.user-id {
+  font-size: 24rpx;
+  opacity: 0.8;
+}
+
+.user-level {
+  align-self: flex-start;
+}
+
+.level-tag {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
+  font-size: 22rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+/* 设置区域样式 */
+.settings-section {
+  background-color: white;
+  border-radius: 20rpx;
+  margin-bottom: 30rpx;
+  overflow: hidden;
+  box-shadow: 0 5rpx 20rpx rgba(0, 0, 0, 0.03);
+}
+
+.section-title {
+  font-size: 28rpx;
+  color: #999;
+  padding: 30rpx 30rpx 20rpx;
+  font-weight: 500;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.setting-item:active {
+  background-color: #f9f9f9;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.item-left {
+  display: flex;
+  align-items: center;
+}
+
+.item-icon {
+  width: 44rpx;
+  height: 44rpx;
+  margin-right: 20rpx;
+}
+
+.item-text {
+  font-size: 32rpx;
+  color: #333;
+}
+
+.item-right {
+  display: flex;
+  align-items: center;
+}
+
+.item-arrow {
+  width: 28rpx;
+  height: 28rpx;
+  margin-left: 16rpx;
+}
+
+.item-switch {
+  transform: scale(0.8);
+}
+
+.item-status {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.cache-size, .version-text {
+  font-size: 26rpx;
+  color: #999;
+  margin-right: 16rpx;
+}
+
+/* 退出登录按钮样式 */
+.logout-section {
+  margin: 50rpx 0;
+}
+
+.logout-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 28rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  box-shadow: 0 8rpx 25rpx rgba(255, 107, 107, 0.3);
+}
+
+.logout-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 15rpx rgba(255, 107, 107, 0.3);
+}
+
+/* 响应式适配 */
+@media (min-width: 768px) {
+  .container {
+    max-width: 750px;
+    margin: 0 auto;
+  }
+}
