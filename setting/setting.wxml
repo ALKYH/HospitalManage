@@ -1,0 +1,91 @@
+<!--pages/setting/setting.wxml-->
+<!-- account-management.wxml -->
+<view class="container">
+  <!-- 顶部用户信息卡片 -->
+  <view class="user-card">
+    <view class="user-avatar-section">
+      <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+      <view class="user-info">
+        <text class="user-name">{{userInfo.nickName || '微信用户'}}</text>
+        <text class="user-id">ID: {{userInfo.userId || '未设置'}}</text>
+      </view>
+    </view>
+    <view class="user-level">
+      <text class="level-tag">普通会员</text>
+    </view>
+  </view>
+
+  <!-- 账号设置区域 -->
+  <view class="settings-section">
+    <view class="section-title">账号设置</view>
+    
+    <view class="setting-item" bindtap="navigateToProfile">
+      <view class="item-left">
+        <image class="item-icon" src="/images/icon-profile.png"></image>
+        <text class="item-text">个人信息</text>
+      </view>
+      <image class="item-arrow" src="/images/icon-arrow-right.png"></image>
+    </view>
+    
+    <view class="setting-item" bindtap="navigateToPrivacy">
+      <view class="item-left">
+        <image class="item-icon" src="/images/icon-privacy.png"></image>
+        <text class="item-text">隐私设置</text>
+      </view>
+      <image class="item-arrow" src="/images/icon-arrow-right.png"></image>
+    </view>
+  </view>
+
+  <!-- 安全设置区域 -->
+  <view class="settings-section">
+    <view class="section-title">安全设置</view>
+    
+    <view class="setting-item" bindtap="toggleNotification">
+      <view class="item-left">
+        <image class="item-icon" src="/images/icon-notification.png"></image>
+        <text class="item-text">消息通知</text>
+      </view>
+      <switch class="item-switch" checked="{{notificationEnabled}}" bindchange="toggleNotification" />
+    </view>
+    
+    <view class="setting-item" bindtap="goChangePassword">
+      <view class="item-left">
+        <image class="item-icon" src="/images/icon-password.png"></image>
+        <text class="item-text">修改密码</text>
+      </view>
+      <image class="item-arrow" src="/images/icon-arrow-right.png"></image>
+    </view>
+    
+    <view class="setting-item" bindtap="setupPayment">
+      <view class="item-left">
+        <image class="item-icon" src="/images/icon-payment.png"></image>
+        <text class="item-text">支付设置</text>
+      </view>
+      <view class="item-right">
+        <text class="item-status">{{paymentSet ? '已设置' : '未设置'}}</text>
+        <image class="item-arrow" src="/images/icon-arrow-right.png"></image>
+      </view>
+    </view>
+  </view>
+
+  <!-- 其他设置区域 -->
+  <view class="settings-section">
+    <view class="section-title">其他</view>
+    
+ 
+
+    
+    <view class="setting-item" bindtap="showAbout">
+      <view class="item-left">
+        <image class="item-icon" src="/images/icon-about.png"></image>
+        <text class="item-text">关于我们</text>
+      </view>
+      <image class="item-arrow" src="/images/icon-arrow-right.png"></image>
+    </view>
+  </view>
+
+  <!-- 退出登录按钮 -->
+  <view class="logout-section">
+    <button class="logout-btn" bindtap="onLogout">退出登录</button>
+  </view>
+</view>
