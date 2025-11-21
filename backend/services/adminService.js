@@ -102,6 +102,40 @@ async function setDoctorPassword(doctorId, { username, password }) {
   }
 }
 
+// Account management (admin)
+async function listAccounts() {
+  const [rows] = await db.query('SELECT id, username, role, created_at, updated_at FROM accounts ORDER BY id DESC');
+  return rows;
+}
+
+async function getAccountById(id) {
+  const acc = await AccountModel.findById(id);
+  if (!acc) return null;
+  // hide password_hash
+  delete acc.password_hash;
+  return acc;
+}
+
+async function updateAccount(id, payload) {
+  const allowed = ['username', 'role'];
+  const sets = [];
+  const params = [];
+  allowed.forEach(k => { if (payload[k] !== undefined) { sets.push(`${k} = ?`); params.push(payload[k]); } });
+  if (sets.length === 0) {
+    const a = await getAccountById(id);
+    return a;
+  }
+  params.push(id);
+  const sql = `UPDATE accounts SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
+  await db.query(sql, params);
+  const [rows] = await db.query('SELECT id, username, role, created_at, updated_at FROM accounts WHERE id = ?', [id]);
+  return rows[0];
+}
+
+async function deleteAccount(id) {
+  await db.query('DELETE FROM accounts WHERE id = ?', [id]);
+}
+
 // Availability
 async function getAvailabilityByDoctor(doctorId) {
   const [rows] = await db.query('SELECT * FROM doctor_availability WHERE doctor_id = ? ORDER BY date, slot', [doctorId]);
@@ -207,13 +241,22 @@ async function setLeaveRequestStatus(id, status, approverId) {
   await db.query('UPDATE doctor_leaves SET status = ?, approved_by = ? WHERE id = ?', [status, approverId, id]);
 }
 
+async function createLeaveRequest(doctor_id, from_date, to_date, reason) {
+  await ensureTables();
+  const [r] = await db.query('INSERT INTO doctor_leaves (doctor_id, from_date, to_date, reason, status) VALUES (?, ?, ?, ?, ?)', [doctor_id, from_date, to_date, reason || null, 'pending']);
+  const [rows] = await db.query('SELECT * FROM doctor_leaves WHERE id = ?', [r.insertId]);
+  return rows[0];
+}
+
 module.exports = {
   ensureTables,
   listDepartments, createDepartment, updateDepartment, deleteDepartment,
   listDoctors, createDoctor, updateDoctor, deleteDoctor,
   setDoctorPassword,
+  // account management (admin)
+  listAccounts, getAccountById, updateAccount, deleteAccount,
   getAvailabilityByDoctor, listAllAvailability, deleteAvailability, createOrUpdateAvailability,
   listFees, setFee,
   listPendingDoctorReviews, approveDoctorProfile, rejectDoctorProfile,
-  listLeaveRequests, setLeaveRequestStatus
+  listLeaveRequests, setLeaveRequestStatus, createLeaveRequest
 };

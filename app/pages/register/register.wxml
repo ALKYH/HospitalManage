@@ -20,7 +20,7 @@
   <view class="card">
     <text class="card-title">医生选择</text>
     <view class="card-content">
-      <picker mode="selector" range="{{doctors}}" bindchange="onDoctorChange">
+      <picker mode="selector" range="{{doctors}}" range-key="name" bindchange="onDoctorChange">
         <view class="picker-display">{{selectedDoctor.name || '请选择医生'}}</view>
       </picker>
     </view>

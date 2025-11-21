@@ -23,6 +23,19 @@ Page({
       // fetch doctors for this department
       this.loadDoctorsForDept(selected.id);
     }
+    // also check if a doctor was selected from docPick and stored
+    const selDoc = wx.getStorageSync('selectedDoctor');
+    if (selDoc) {
+      this.setData({ selectedDoctor: selDoc });
+      wx.removeStorageSync('selectedDoctor');
+      // always load availability for the selected doctor (no date filter) to populate datepicker
+      if (selDoc && selDoc.id) this.loadAvailability(selDoc.id);
+      else if (selDoc && selDoc.name) {
+        // if only name supplied (no id), still try to load doctors list to find matching id
+        // trigger loadDoctorsForDept if department known
+        if (this.data.selectedDept && this.data.selectedDept.id) this.loadDoctorsForDept(this.data.selectedDept.id);
+      }
+    }
   },
   goToDepartment() {
     wx.navigateTo({
@@ -61,9 +74,8 @@ Page({
     const { doctor } = e.detail;
     this.setData({ selectedDoctor: doctor });
     console.log('已选择医生:', doctor);
-    // load availability for default date or selectedDate
-    const date = wx.getStorageSync('selectedDate') || null;
-    if (date) this.loadAvailability(doctor.id, date);
+    // always load availability for the selected doctor to populate datepicker
+    if (doctor && doctor.id) this.loadAvailability(doctor.id);
   },
 
   onDeptChange: function(e) {
@@ -76,8 +88,8 @@ Page({
     this.setData({
       selectedDoctor: doctor
     });
-    const date = wx.getStorageSync('selectedDate') || null;
-    if (date) this.loadAvailability(doctor.id, date);
+    // always load availability when doctor changes (no date filter)
+    if (doctor && doctor.id) this.loadAvailability(doctor.id);
   },
 
   async loadDoctorsForDept(deptId) {
@@ -94,13 +106,39 @@ Page({
 
   async loadAvailability(doctorId, date) {
     const { request } = require('../../utils/request');
+    // avoid redundant loads for same doctorId+date
+    try {
+      const key = `${doctorId || ''}::${date || ''}`;
+      if (this._lastAvailKey && this._lastAvailKey === key) {
+        console.log('loadAvailability skipped (cached):', key);
+        return;
+      }
+      this._lastAvailKey = key;
+    } catch (e) { /* ignore */ }
     try {
       const url = `/api/doctor/${doctorId}/availability` + (date ? `?date=${date}` : '');
       const res = await request({ url, method: 'GET' });
       if (res && res.success) {
         // map availability into selectable slots and available types
         // 简单示例：把第一个 availability 的 available_by_type 转成选择项
-        const avail = res.data || [];
+  let avail = res.data || [];
+        // normalize date fields to YYYY-MM-DD so date-picker and maps align
+        avail = avail.map(a => {
+          try {
+            if (a && a.date) {
+              const raw = String(a.date || '');
+              if (raw.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+                return a; // already YYYY-MM-DD
+              }
+              const d = new Date(raw);
+              if (!isNaN(d.getTime())) {
+                const norm = d.toISOString().slice(0,10);
+                return Object.assign({}, a, { date: norm });
+              }
+            }
+          } catch(e) {}
+          return a;
+        });
         if (avail.length > 0) {
           const first = avail[0];
             // 把 available_by_type 转换为数组方便 WXML 渲染

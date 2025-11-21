@@ -1,0 +1,32 @@
+<!-- pages/docInfo/docInfo.wxml -->
+<view class="container">
+	<view class="header">
+		<text class="title">医生信息</text>
+	</view>
+
+	<view class="form-row">
+		<text class="label">姓名</text>
+		<input value="{{doctor.name}}" placeholder="姓名" bindinput="onChangeName" />
+	</view>
+
+	<view class="form-row">
+		<text class="label">职称</text>
+		<input value="{{doctor.title}}" placeholder="职称" bindinput="onChangeTitle" />
+	</view>
+
+	<view class="form-row">
+		<text class="label">联系方式</text>
+		<input value="{{doctor.contact}}" placeholder="电话/邮箱" bindinput="onChangeContact" />
+	</view>
+
+	<view class="form-row">
+		<text class="label">简介</text>
+		<textarea value="{{doctor.bio}}" placeholder="个人简介" bindinput="onChangeBio" autoHeight="true" />
+	</view>
+
+	<view class="actions">
+		<button bindtap="onSave">保存</button>
+		<button bindtap="goAbsence">请假申请</button>
+	</view>
+
+</view>

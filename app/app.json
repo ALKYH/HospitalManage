@@ -10,7 +10,6 @@
     "pages/docPick/docPick",
     "pages/accountRegister/accountRegister",
     "pages/setting/setting",
-    "pages/setting/changePassword/changePassword",
     "pages/docLogin/docLogin",
     "pages/docRegister/docRegister",
     "pages/docAccount/docAccount",
@@ -19,7 +18,10 @@
     "pages/orders/orders",
     "pages/payment/payment",
     "pages/appointment/appointment",
-    "pages/logs/logs"
+    "pages/logs/logs",
+    "pages/docInfo/docInfo",
+    "pages/docAbsence/docAbsence"
+    "pages/setting/changePassword/changePassword",
   ],
   "window": {
     "backgroundTextStyle": "light",

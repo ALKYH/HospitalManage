@@ -29,7 +29,8 @@ Page({
       title: `${doc} - ${sub}`,
       icon: 'success'
     });
-    wx.setStorageSync('selectedDoc', `${doc} - ${sub}`);
+    // store a minimal doctor object so register page can read name/id
+    wx.setStorageSync('selectedDoctor', { id: null, name: `${doc} - ${sub}` });
     setTimeout(() => wx.navigateBack(), 800);
   },
 

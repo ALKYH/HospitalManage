@@ -205,3 +205,36 @@ exports.listOrders = async (req, res) => {
     res.json({ success: true, data: rows });
   } catch (err) { console.error('listOrders err', err); res.status(500).json({ success: false, message: err.message }); }
 };
+
+// Account management (admin)
+exports.listAccounts = async (req, res) => {
+  try {
+    const rows = await adminService.listAccounts();
+    res.json({ success: true, data: rows });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+exports.getAccount = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const row = await adminService.getAccountById(id);
+    if (!row) return res.status(404).json({ success: false, message: 'Account not found' });
+    res.json({ success: true, data: row });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+exports.updateAccount = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const row = await adminService.updateAccount(id, req.body);
+    res.json({ success: true, data: row });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+exports.deleteAccount = async (req, res) => {
+  try {
+    const id = req.params.id;
+    await adminService.deleteAccount(id);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};

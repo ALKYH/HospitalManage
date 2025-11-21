@@ -1,0 +1,97 @@
+page {
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  min-height: 100vh;
+}
+
+.container {
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+/* 顶部标题栏（毛玻璃效果） */
+.header {
+  text-align: center;
+  padding: 30rpx 0 60rpx 0;
+}
+
+.title {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: 2rpx;
+  text-shadow: 0 4rpx 10rpx rgba(0,0,0,0.15);
+}
+
+/* 表单行统一卡片样式 */
+.form-row {
+  margin-bottom: 40rpx;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20rpx);
+  padding: 36rpx 28rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 10rpx 24rpx rgba(0,0,0,0.12);
+}
+
+.label {
+  display: block;
+  font-size: 30rpx;
+  color: #555;
+  margin-bottom: 20rpx;
+  font-weight: 500;
+}
+
+/* picker 行美化 */
+.picker {
+  font-size: 32rpx;
+  color: #333;
+  padding: 22rpx 26rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  border: 2rpx solid #e0e0e0;
+  box-shadow: 0 4rpx 8rpx rgba(0,0,0,0.06);
+}
+
+.picker:active {
+  transform: scale(0.97);
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.12);
+}
+
+/* textarea 美化 */
+textarea {
+  width: 90%;
+  background: #fff;
+  padding: 26rpx;
+  font-size: 32rpx;
+  border-radius: 18rpx;
+  border: 2rpx solid #e0e0e0;
+  min-height: 160rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.08);
+}
+
+textarea:focus {
+  border-color: #1aad19;
+  box-shadow: 0 0 20rpx rgba(26,173,25,0.2);
+  background: #fff;
+}
+
+/* 按钮区域 */
+.actions {
+  margin-top: 50rpx;
+}
+
+button {
+  width: 100%;
+  background: #1aad19;
+  color: #fff;
+  padding: 26rpx 0;
+  border-radius: 20rpx;
+  font-size: 34rpx;
+  font-weight: bold;
+  box-shadow: 0 12rpx 26rpx rgba(26,173,25,0.3);
+  transition: all 0.2s ease-in-out;
+}
+
+button:active {
+  transform: scale(0.96);
+  box-shadow: 0 6rpx 14rpx rgba(26,173,25,0.35);
+}

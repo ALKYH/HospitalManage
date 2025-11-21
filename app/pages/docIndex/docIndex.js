@@ -32,11 +32,14 @@ Page({
   goAccount() { wx.navigateTo({ url: '/pages/docAccount/docAccount' }); },
   goRegister() { wx.navigateTo({ url: '/pages/docRegister/docRegister' }); },
   goShift() { wx.navigateTo({ url: '/pages/docShift/docShift' }); },
+  goInfo() { wx.navigateTo({ url: '/pages/docInfo/docInfo' }); },
+  goAbsence() { wx.navigateTo({ url: '/pages/docAbsence/docAbsence' }); },
   
   onLogout() { 
     wx.removeStorageSync('token'); 
     wx.removeStorageSync('doctor_id'); 
     wx.removeStorageSync('doctor'); 
+    wx.removeStorageSync('account_id');
   wx.reLaunch({ url: '/pages/docLogin/docLogin'
  }); },
 

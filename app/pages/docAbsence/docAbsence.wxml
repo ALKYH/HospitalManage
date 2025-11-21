@@ -1,0 +1,24 @@
+<view class="container">
+  <view class="header"><text class="title">请假申请</text></view>
+
+  <view class="form-row"><text class="label">开始日期</text>
+    <picker mode="date" value="" bindchange="onFromDate">
+      <view class="picker">{{from_date || '请选择开始日期'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-row"><text class="label">结束日期</text>
+    <picker mode="date" value="" bindchange="onToDate">
+      <view class="picker">{{to_date || '请选择结束日期'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-row"><text class="label">原因</text>
+    <textarea bindinput="onReason" placeholder="请填写请假原因" value="{{reason}}" autoHeight="true"/>
+  </view>
+
+  <view class="actions">
+    <button bindtap="submit">提交申请</button>
+  </view>
+
+</view>

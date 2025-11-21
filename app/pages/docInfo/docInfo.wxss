@@ -1,0 +1,112 @@
+page {
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  min-height: 100vh;
+}
+
+.container {
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+/* 顶部标题 */
+.header {
+  text-align: center;
+  padding: 40rpx 0 60rpx;
+}
+
+.title {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: 2rpx;
+  text-shadow: 0 4rpx 10rpx rgba(0,0,0,0.15);
+}
+
+/* 统一卡片风格 */
+.form-row {
+  margin-bottom: 40rpx;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20rpx);
+  padding: 36rpx 28rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 10rpx 24rpx rgba(0,0,0,0.12);
+}
+
+.label {
+  display: block;
+  font-size: 30rpx;
+  color: #555;
+  margin-bottom: 20rpx;
+  font-weight: 500;
+}
+
+/* 输入框统一样式 */
+input {
+  width: 100%;
+  height: 100rpx;
+  background: #fff;
+  padding: 22rpx 26rpx;
+  font-size: 32rpx;
+  border-radius: 16rpx;
+  border: 2rpx solid #e0e0e0;
+  box-sizing: border-box;
+  box-shadow: 0 4rpx 8rpx rgba(0,0,0,0.06);
+}
+
+input:focus {
+  border-color: #1aad19;
+  background: #fff;
+  box-shadow: 0 0 20rpx rgba(26,173,25,0.2);
+}
+
+/* 简介 textarea */
+textarea {
+  width: 90%;
+  background: #fff;
+  padding: 26rpx;
+  font-size: 32rpx;
+  border-radius: 18rpx;
+  border: 2rpx solid #e0e0e0;
+  min-height: 160rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.08);
+}
+
+textarea:focus {
+  border-color: #1aad19;
+  box-shadow: 0 0 20rpx rgba(26,173,25,0.2);
+}
+
+/* 按钮组 */
+.actions {
+  margin-top: 60rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+button {
+  width: 100%;
+  background: #1aad19;
+  color: #fff;
+  padding: 28rpx 0;
+  border-radius: 20rpx;
+  font-size: 34rpx;
+  font-weight: bold;
+  box-shadow: 0 12rpx 26rpx rgba(26,173,25,0.3);
+  transition: all 0.2s ease-in-out;
+}
+
+button:active {
+  transform: scale(0.96);
+  box-shadow: 0 6rpx 14rpx rgba(26,173,25,0.35);
+}
+
+.actions button:last-child {
+  background: #4a90e2; /* 与医疗系统常用蓝色系搭配 */
+  box-shadow: 0 12rpx 26rpx rgba(74,144,226,0.3);
+}
+
+.actions button:last-child:active {
+  transform: scale(0.96);
+  box-shadow: 0 6rpx 14rpx rgba(74,144,226,0.35);
+}

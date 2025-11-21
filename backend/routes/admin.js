@@ -20,6 +20,12 @@ router.put('/doctors/:id', adminController.updateDoctor);
 router.delete('/doctors/:id', adminController.deleteDoctor);
 router.post('/doctors/:id/set-password', adminController.setDoctorPassword);
 
+// Accounts (admin)
+router.get('/accounts', adminController.listAccounts);
+router.get('/accounts/:id', adminController.getAccount);
+router.put('/accounts/:id', adminController.updateAccount);
+router.delete('/accounts/:id', adminController.deleteAccount);
+
 // Availability (capacities per service type are stored in extra JSON)
 router.get('/availability', adminController.listAllAvailability); // list all availabilities
 router.get('/availability/:doctorId', adminController.getAvailabilityByDoctor);
@@ -44,5 +50,11 @@ router.post('/leave-requests/:id/reject', adminController.rejectLeaveRequest);
 router.get('/tables', adminController.listAllTables);
 // Orders view for admin
 router.get('/orders', adminController.listOrders);
+
+// Account management
+router.get('/accounts', adminController.listAccounts);
+router.get('/accounts/:id', adminController.getAccount);
+router.put('/accounts/:id', adminController.updateAccount);
+router.delete('/accounts/:id', adminController.deleteAccount);
 
 module.exports = router;

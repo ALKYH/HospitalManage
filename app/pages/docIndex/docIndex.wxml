@@ -29,6 +29,22 @@
       </view>
       <text class="arrow">›</text>
     </view>
+
+    <view class="list-item" bindtap="goInfo">
+      <view class="item-left">
+        <text class="icon shift-icon">🚪</text>
+        <text class="item-text">修改信息</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+
+    <view class="list-item" bindtap="goAbsence">
+      <view class="item-left">
+        <text class="icon shift-icon">🚪</text>
+        <text class="item-text">请假</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
     
     <view class="list-item logout-item" bindtap="onLogout">
       <view class="item-left">

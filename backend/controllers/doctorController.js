@@ -33,6 +33,36 @@ exports.getMyDoctor = async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ success: false, message: err.message }); }
 };
 
+  // allow doctor to update their own profile
+  exports.updateMe = async (req, res) => {
+    try {
+      const accountId = req.user && req.user.id;
+      if (!accountId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+      const db = require('../db');
+      const [docs] = await db.query('SELECT * FROM doctors WHERE account_id = ?', [accountId]);
+      if (!docs || docs.length === 0) return res.status(404).json({ success: false, message: '医生未绑定账户' });
+      const doctorId = docs[0].id;
+      const updated = await require('../services/doctorService').updateDoctor(doctorId, req.body || {});
+      res.json({ success: true, data: updated });
+    } catch (err) { console.error(err); res.status(500).json({ success: false, message: err.message }); }
+  };
+
+  // allow doctor to submit a leave request (will be pending for admin review)
+  exports.createLeaveRequest = async (req, res) => {
+    try {
+      const accountId = req.user && req.user.id;
+      if (!accountId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+      const db = require('../db');
+      const [docs] = await db.query('SELECT * FROM doctors WHERE account_id = ?', [accountId]);
+      if (!docs || docs.length === 0) return res.status(404).json({ success: false, message: '医生未绑定账户' });
+      const doctorId = docs[0].id;
+      const { from_date, to_date, reason } = req.body || {};
+      if (!from_date || !to_date) return res.status(400).json({ success: false, message: '需要提供 from_date 和 to_date' });
+      const row = await require('../services/adminService').createLeaveRequest(doctorId, from_date, to_date, reason || null);
+      res.json({ success: true, data: row });
+    } catch (err) { console.error(err); res.status(500).json({ success: false, message: err.message }); }
+  };
+
 exports.getRegistrationsForMe = async (req, res) => {
   try {
     const accountId = req.user && req.user.id;
