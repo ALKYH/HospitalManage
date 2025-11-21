@@ -4,6 +4,11 @@ const AuthController = {
   async register(req, res) {
     try {
       const { username, password } = req.body;
+      // 后端校验：密码至少6位且同时包含字母和数字
+      const pwdRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+      if (!password || !pwdRegex.test(password)) {
+        throw new Error('密码应至少6位，且包含字母和数字');
+      }
       const result = await AuthService.register(username, password);
       res.status(201).json({ success: true, data: result, message: '注册成功' });
     } catch (err) {
@@ -32,6 +37,9 @@ AuthController.changePassword = async (req, res) => {
     if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
     const { oldPassword, newPassword } = req.body || {};
     if (!oldPassword || !newPassword) return res.status(400).json({ success: false, message: '需要 oldPassword 与 newPassword' });
+    // 新密码规则：至少6位，包含字母和数字
+    const pwdRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+    if (!pwdRegex.test(newPassword)) return res.status(400).json({ success: false, message: '新密码应至少6位，且包含字母和数字' });
     await AuthService.changePassword(userId, oldPassword, newPassword);
     res.json({ success: true });
   } catch (err) {

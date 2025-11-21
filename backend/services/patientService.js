@@ -26,14 +26,17 @@ async function getProfileByAccountId(accountId) {
 }
 
 function verifyAgainstStaffList({ employeeId, name, idNumber }) {
-  // 支持使用学工号(employeeId)、姓名(name)或身份证(idNumber)来验证
-  console.log('Verifying against staff list:', { employeeId, name, idNumber });
-  if (!employeeId && !idNumber && !name) return false;
+  // 严格匹配：要求学/工号(employeeId)、姓名(name)、身份证(idNumber)三项与 staffList 中同一条记录完全一致
+  console.log('Strict verifying against staff list:', { employeeId, name, idNumber });
+  if (!employeeId || !name || !idNumber) return false;
   const found = staffList.find(s => {
-    if (employeeId && s.employeeId && String(s.employeeId).trim() === String(employeeId).trim()) return true;
-    if (idNumber && s.idNumber && String(s.idNumber).trim() === String(idNumber).trim()) return true;
-    if (name && s.name && String(s.name).trim() === String(name).trim()) return true;
-    return false;
+    try {
+      return String(s.employeeId || '').trim() === String(employeeId || '').trim()
+        && String(s.name || '').trim() === String(name || '').trim()
+        && String(s.idNumber || '').trim() === String(idNumber || '').trim();
+    } catch (e) {
+      return false;
+    }
   });
   return !!found;
 }

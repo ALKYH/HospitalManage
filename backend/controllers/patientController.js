@@ -23,20 +23,25 @@ exports.submitProfile = async (req, res) => {
     if (!accountId) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
     const payload = req.body || {};
+    // 必填校验：需提供学/工号、姓名、身份证号与手机号
+    const employeeId = payload.employeeId || payload.idNumber || (payload.extra && payload.extra.employeeId) || null;
+    const name = payload.display_name || null;
+    const idNumber = payload.idcard || payload.idNumber || (payload.extra && payload.extra.idNumber) || null;
+    const phone = payload.phone || (payload.extra && payload.extra.phone) || null;
 
-    // 验证表单必填项
-    if (!payload.idcard && !payload.idNumber) {
-      return res.status(400).json({ success: false, message: '需提供身份证号或工号以验证' });
+    if (!employeeId || !name || !idNumber) {
+      return res.status(400).json({ success: false, message: '需提供学/工号、姓名和身份证号' });
     }
 
-    // 验证是否在教职工名单中（使用学工号(employeeId)/姓名/身份证三项中的任何一项）
-    const verified = patientService.verifyAgainstStaffList({
-      employeeId: payload.idNumber || payload.employeeId || null,
-      name: payload.display_name || null,
-      idNumber: payload.idNumber || payload.idcard || null
-    });
+    // 手机必须为 11 位数字
+    if (!phone || !/^\d{11}$/.test(String(phone))) {
+      return res.status(400).json({ success: false, message: '手机号需为11位数字' });
+    }
+
+    // 严格匹配 staff 列表：三字段必须与同一条记录对应
+    const verified = patientService.verifyAgainstStaffList({ employeeId, name, idNumber });
     if (!verified) {
-      return res.status(400).json({ success: false, message: '未在教职工名单中，请核对信息' });
+      return res.status(400).json({ success: false, message: '信息与教职工名单不匹配，请核对学/工号、姓名和身份证号' });
     }
 
     const saved = await patientService.saveProfile(accountId, payload);

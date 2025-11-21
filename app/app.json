@@ -10,6 +10,7 @@
     "pages/docPick/docPick",
     "pages/accountRegister/accountRegister",
     "pages/setting/setting",
+    "pages/setting/changePassword/changePassword",
     "pages/docLogin/docLogin",
     "pages/docRegister/docRegister",
     "pages/docAccount/docAccount",

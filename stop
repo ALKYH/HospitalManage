@@ -1,0 +1,227 @@
+[33mcommit 9338bbc010b61bca071c231e206ed99267263499[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: swwtat <2423402061@qq.com>
+Date:   Fri Nov 21 02:43:56 2025 +0800
+
+    密码需要数字+字母组合，且长度不少于6位，修改密码可用，个人信息需要都匹配才通过
+
+[33mcommit cc8f2aaf75ecdf2fd2c212c18c42831c62a25cc6[m
+Author: swwtat <2423402061@qq.com>
+Date:   Fri Nov 21 00:29:10 2025 +0800
+
+    删
+
+[33mcommit 14d63e2b189a86b22c461c34699f16e82c99f760[m
+Author: swwtat <2423402061@qq.com>
+Date:   Fri Nov 21 00:28:40 2025 +0800
+
+    删
+
+[33mcommit 50affbe18541f2f8bc1b04d19715cc0f774d5e08[m
+Author: swwtat <2423402061@qq.com>
+Date:   Fri Nov 21 00:28:09 2025 +0800
+
+    删
+
+[33mcommit 8ef8e789730a0e85f58bca9dfa97ff41cee86a84[m
+Author: swwtat <2423402061@qq.com>
+Date:   Fri Nov 21 00:27:50 2025 +0800
+
+    删
+
+[33mcommit 914641c0b78634e3dd6ede81f9ad85ed13f013f7[m
+Author: swwtat <2423402061@qq.com>
+Date:   Fri Nov 21 00:27:35 2025 +0800
+
+    删
+
+[33mcommit 0c6ef4d90d6c09fe0f33528dfcd827d636907901[m
+Author: swwtat <2423402061@qq.com>
+Date:   Fri Nov 21 00:27:17 2025 +0800
+
+    删
+
+[33mcommit 64946f89e3a4169b2d49b3fd12c1b2df2b8d32a8[m
+Author: swwtat <2423402061@qq.com>
+Date:   Fri Nov 21 00:27:00 2025 +0800
+
+    删
+
+[33mcommit f52cb0f5d5f843c75e62f06435c9beb3d868fbed[m
+Author: swwtat <2423402061@qq.com>
+Date:   Fri Nov 21 00:26:38 2025 +0800
+
+    删
+
+[33mcommit 0e9c6ed561e08666639159d15ce1cf4cce02d217[m
+Merge: 1da1c84 c38c773
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Fri Nov 21 00:19:58 2025 +0800
+
+    Merge branch 'main' of https://github.com/ALKYH/HospitalManage
+
+[33mcommit 1da1c8469078f432e1ed8b10873f54de6e20be93[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Fri Nov 21 00:19:51 2025 +0800
+
+    feat&fix:前端优化 frontend optimized,added documents
+
+[33mcommit c38c7730dece944e48a59216ae3bc1aff5f181ff[m
+Author: swwtat <2423402061@qq.com>
+Date:   Fri Nov 21 00:08:50 2025 +0800
+
+    现在注册修改密码需要至少6位数字字母，个人信息需要一一匹配
+
+[33mcommit 163d3bd6df9b48e48b4e444d9e7bf7a2d023e415[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Wed Nov 19 19:08:14 2025 +0800
+
+    feat:前后端订单管理，支付系统，基于前后端双重验证的号源分配
+    fix: 由于逻辑缺失导致的非法挂号
+
+[33mcommit 2a47eca3f6b4eb7bdd08ffd04d60a1af85adb71a[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Wed Nov 12 23:27:43 2025 +0800
+
+    完成完整原型，fix: Intergration Between doc&user and their backend service
+
+[33mcommit 3e448db97510d2855b22af994b386913880bc446[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Wed Nov 12 00:35:46 2025 +0800
+
+    feat: docManage
+
+[33mcommit dc3f8f688529129bbd3392f6e3ab4d5d56757979[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Tue Nov 11 20:26:59 2025 +0800
+
+    fix
+
+[33mcommit 8bec288f1571e7be6745b98f4bba8b05029f4875[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Fri Oct 31 00:47:35 2025 +0800
+
+    feat: profile binding
+
+[33mcommit a41ebaf67de2ef25fd1eaec579f9a8998242365c[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Tue Oct 28 21:09:41 2025 +0800
+
+    feat : Web Management & Regi Connectivity
+
+[33mcommit e5a785e3728d1d0510f1e4e2d9c4859ae862642c[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Tue Oct 28 20:01:30 2025 +0800
+
+    feat: MQ
+
+[33mcommit a0698c444ee3f8f06645d7ae9ea52897b9c2f1e8[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Mon Oct 27 01:51:12 2025 +0800
+
+    feat:Profile via usercontrol
+
+[33mcommit 803f824a39b73d42f614a88420c0446292eb213b[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Fri Oct 24 01:42:44 2025 +0800
+
+    fix
+
+[33mcommit 9e1daddd6e85ce6264ad5b3882ed5e18cdd09c75[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Fri Oct 24 01:33:15 2025 +0800
+
+    fix:auth
+
+[33mcommit 5ef994ca7162022135ea3e5946dd74f29a295fe2[m
+Merge: daf2b3c 97c107f
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Thu Oct 23 20:33:41 2025 +0800
+
+    Merge branch 'main' of https://github.com/ALKYH/HospitalManage
+
+[33mcommit daf2b3cc73ab68f0574e560e0a6b0394c9556aff[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Thu Oct 23 20:33:30 2025 +0800
+
+    Backend merged
+
+[33mcommit 97c107f8a746bcd904f03e9dfa8544c77ecbfc8a[m
+Author: ALK_YH <78719970+ALKYH@users.noreply.github.com>
+Date:   Thu Oct 23 20:31:49 2025 +0800
+
+    Add files via upload
+
+[33mcommit eca10bd673db7def743725c23b272a7baa720174[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Thu Oct 23 20:26:26 2025 +0800
+
+    fix
+
+[33mcommit acbd09252bdb8be1809b27d187f3bcee9cd6928d[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Thu Oct 23 19:12:10 2025 +0800
+
+    feat:auth connectivity
+
+[33mcommit 59eb8a4d089cc6c3a24732552aa29dd1aec8fb41[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Mon Oct 20 20:06:39 2025 +0800
+
+    feat: Appointment
+
+[33mcommit 3b3c14e6cde8491e6f9f5e23f0a4855db58928d0[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Sun Oct 12 18:38:37 2025 +0800
+
+    feat: refactored deptpick
+
+[33mcommit 452d90ad248f5ff738b6d1b3f26fca438596563d[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Sat Oct 11 19:39:19 2025 +0800
+
+    UX
+
+[33mcommit 9217de68371f827a9660bcfff42621d34b256165[m
+Merge: 8ddc416 d16ecf7
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Sat Oct 11 19:15:22 2025 +0800
+
+    Merge branch 'main' of https://github.com/ALKYH/HospitalManage
+
+[33mcommit 8ddc416dab8acc12c97c2e0a1fe59c58d1aa0db8[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Sat Oct 11 19:13:38 2025 +0800
+
+    UX
+
+[33mcommit d16ecf7d90d5d85da0d0743546fa71049e0dd330[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Sat Oct 11 18:19:52 2025 +0800
+
+    readme
+
+[33mcommit f1e799cbcedc63e40159bd48ae09011d9e862d95[m
+Author: ALK_YH <78719970+ALKYH@users.noreply.github.com>
+Date:   Fri Oct 10 20:34:11 2025 +0800
+
+    Add files via upload
+    
+    init
+
+[33mcommit f94d6dd5132232c2d83eaf8b9efb44f1e3ac06f3[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Fri Sep 26 14:51:38 2025 +0800
+
+    doc
+
+[33mcommit a68e5240593e9861b621ff8a4e93b24f20f9c844[m
+Author: Alkyne <EDMKDU@Outlook.com>
+Date:   Fri Sep 12 15:57:25 2025 +0800
+
+    test
+
+[33mcommit 28e017661cb53abbd7cc93d2643000fe0c0423a2[m
+Author: ALK_YH <78719970+ALKYH@users.noreply.github.com>
+Date:   Fri Sep 12 15:45:07 2025 +0800
+
+    Initial commit

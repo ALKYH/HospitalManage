@@ -29,6 +29,13 @@ Page({
       return;
     }
 
+    // 密码需要至少6位，并同时包含字母和数字
+    const pwdRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+    if (!pwdRegex.test(password)) {
+      wx.showToast({ title: '密码至少6位，且包含字母和数字', icon: 'none' });
+      return;
+    }
+
     wx.showLoading({ title: '注册中...' });
     try {
       const res = await request({ url: '/auth/register', method: 'POST', data: { username, password } });

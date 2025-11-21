@@ -18,10 +18,6 @@ Page({
 
   },
 
-  changePassword() {
-    wx.navigateTo({ url: '/pages/setting/changePassword/changePassword' });
-  },
-
   /**
    * 生命周期函数--监听页面初次渲染完成
    */
@@ -69,5 +65,9 @@ Page({
    */
   onShareAppMessage() {
 
+  }
+  ,
+  goChangePassword(){
+    wx.navigateTo({url:'/pages/changePassword/changePassword'});
   }
 })
