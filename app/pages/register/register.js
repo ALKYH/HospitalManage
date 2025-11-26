@@ -189,6 +189,13 @@ Page({
         wx.showToast({ title: '挂号成功', icon: 'success' });
         this.setData({ message: `挂号成功：${res.data.id} 状态:${res.data.status}` });
         // 跳转到订单页
+        // 请求用户订阅消息（提醒类）
+        try {
+          const notify = require('../../utils/notify');
+          // 在这里填写需要订阅的模板ID（需要在微信公众平台配置）
+          const templateIds = ['TMPL_APPOINTMENT_REMIND', 'TMPL_CANCEL_REMIND', 'TMPL_WAITLIST_SUCCESS'];
+          await notify.requestSubscription(templateIds);
+        } catch (e) { console.warn('subscription request failed', e); }
         wx.navigateTo({ url: '/pages/orders/orders' });
       } else {
         wx.showToast({ title: (res && res.message) ? res.message : '挂号失败', icon: 'none' });

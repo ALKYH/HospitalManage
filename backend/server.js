@@ -7,6 +7,7 @@ const authRoutes = require('./routes/authRoutes');
 const patientRoutes = require('./routes/patient');
 const doctorRoutes = require('./routes/doctor');
 const mqRoutes = require('./routes/mq');
+const notifyRoutes = require('./routes/notify');
 const mq = require('./mq');
 const orderSubscriber = require('./mq/subscriber');
 const adminRoutes = require('./routes/admin');
@@ -26,6 +27,7 @@ app.use('/auth', authRoutes);
 app.use('/api/patient', patientRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/mq', mqRoutes);
+app.use('/api/notify', notifyRoutes);
 // Admin static UI
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 // Admin API

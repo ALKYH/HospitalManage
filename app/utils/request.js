@@ -24,6 +24,22 @@ const request = (options) => {
           }
           return resolve(res.data);
         }
+        // token expired / invalid -> prompt re-login
+        if (res && res.statusCode === 401) {
+          try {
+            wx.removeStorageSync('token');
+            wx.showModal({
+              title: '登录已过期',
+              content: '您的登录已过期，请重新登录以继续使用。',
+              confirmText: '去登录',
+              showCancel: false,
+              success() {
+                wx.redirectTo({ url: '/pages/login/login' });
+              }
+            });
+          } catch (e) { /* ignore */ }
+          return reject({ code: res.statusCode, body: res.data || res });
+        }
         return reject({ code: res.statusCode, body: res.data || res });
       },
       fail(err) {

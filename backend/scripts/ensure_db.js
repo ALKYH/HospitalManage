@@ -33,6 +33,22 @@ async function ensure() {
             console.log('paid_at column added to payments');
           }
         }
+        // ensure accounts has wx_openid and notify_opt_in for WeChat subscriptions
+        const [accRows] = await conn.query("SHOW TABLES LIKE 'accounts';");
+        if (accRows.length > 0) {
+          const [accCols] = await conn.query("SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema = ? AND table_name = 'accounts'", [config.db.database]);
+          const accColNames = (accCols || []).map(c => c.COLUMN_NAME);
+          if (!accColNames.includes('wx_openid')) {
+            console.log('Adding wx_openid column to accounts table...');
+            await conn.query("ALTER TABLE accounts ADD COLUMN wx_openid VARCHAR(128) NULL AFTER password_hash");
+            console.log('wx_openid column added to accounts');
+          }
+          if (!accColNames.includes('notify_opt_in')) {
+            console.log('Adding notify_opt_in column to accounts table...');
+            await conn.query("ALTER TABLE accounts ADD COLUMN notify_opt_in TINYINT(1) DEFAULT 0 AFTER wx_openid");
+            console.log('notify_opt_in column added to accounts');
+          }
+        }
       } catch (merr) {
         console.warn('Migration check failed', merr.message);
       }
