@@ -21,7 +21,8 @@
     "pages/logs/logs",
     "pages/docInfo/docInfo",
     "pages/docAbsence/docAbsence",
-    "pages/setting/changePassword/changePassword"
+    "pages/setting/changePassword/changePassword",
+    "pages/catalog/catalog"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -38,6 +39,12 @@
       {
         "pagePath": "pages/index/index",
         "text": "主页",
+        "iconPath": "assets/home.png",
+        "selectedIconPath": "assets/home_active.png"
+      },
+      {
+        "pagePath": "pages/catalog/catalog",
+        "text": "综合",
         "iconPath": "assets/home.png",
         "selectedIconPath": "assets/home_active.png"
       },
