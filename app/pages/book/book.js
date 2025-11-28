@@ -19,7 +19,9 @@ Page({
     ],
     slotsLabels: ['上午 08:00-10:00','上午 10:00-12:00','下午 14:00-16:00','下午 16:00-18:00'],
     minDate: (new Date()).toISOString().slice(0,10),
-    message: ''
+    message: '',
+    isLoading: true, // 新增：控制骨架屏
+    currentStep: 1, // 新增：控制当前焦点步骤 (1:科室, 2:医生, 3:日期/时段)
   },
 
   onLoad() {
@@ -27,6 +29,7 @@ Page({
   },
 
   async loadDepartments() {
+    this.setData({ isLoading: true });
     try {
       const res = await request({ url: '/api/departments', method: 'GET' });
       if (res && res.success) {
@@ -38,41 +41,75 @@ Page({
             p.children.forEach(c => list.push({ id: c.id, name: `${p.name} / ${c.name}` }));
           }
         });
-        this.setData({ departments: list, deptOptions: list.map(d => d.name) });
+        this.setData({ 
+            departments: list, 
+            deptOptions: list.map(d => d.name),
+            isLoading: false // 数据加载完成
+        });
+      } else {
+        this.setData({ isLoading: false, message: '无法加载科室数据' });
       }
     } catch (e) {
       console.error('loadDepartments err', e);
+      this.setData({ isLoading: false, message: '网络错误，请稍后重试' });
     }
   },
 
   async onDeptChange(e) {
     const idx = e.detail.value;
-    this.setData({ deptIndex: idx, doctors: [], doctorIndex: 0 });
+    // 震动反馈
+    wx.vibrateShort({ type: 'light' });
+    this.setData({ deptIndex: idx, doctors: [], doctorIndex: 0, currentStep: 2 });
     const dep = this.data.departments[idx];
     if (dep && dep.id) {
       try {
+        // 增加 loading 提示
+        wx.showLoading({ title: '加载医生中', mask: true });
         const r = await request({ url: `/api/doctor?department_id=${dep.id}`, method: 'GET' });
+        wx.hideLoading();
         if (r && r.success) {
           const docs = r.data || [];
-          this.setData({ doctors: docs, doctorsNames: docs.map(d => d.name) });
+          this.setData({ doctors: docs, doctorsNames: docs.map(d => d.name), message: '' });
+        } else {
+            this.setData({ doctors: [], doctorsNames: [], message: '该科室暂无医生' });
         }
-      } catch (err) { console.error('load doctors err', err); }
+      } catch (err) { 
+          wx.hideLoading();
+          console.error('load doctors err', err);
+          this.setData({ doctors: [], doctorsNames: [], message: '加载医生失败' }); 
+      }
     }
   },
 
   onDoctorChange(e) {
-    this.setData({ doctorIndex: e.detail.value });
+    wx.vibrateShort({ type: 'light' });
+    this.setData({ doctorIndex: e.detail.value, currentStep: 3 });
   },
 
   onDateChange(e) {
+    wx.vibrateShort({ type: 'light' });
     this.setData({ date: e.detail.value });
   },
 
   onSlotChange(e) {
-    this.setData({ slotIndex: e.detail.value });
+    wx.vibrateShort({ type: 'light' });
+    this.setData({ slotIndex: e.detail.value, currentStep: 4 });
+  },
+  
+  // 优化点击跳转 step
+  onFieldTap(e) {
+      const step = parseInt(e.currentTarget.dataset.step, 10);
+      // 只有当前步骤已完成，才能跳转到下一个步骤
+      if (step <= this.data.currentStep) {
+          this.setData({ currentStep: step });
+      } else if (step > this.data.currentStep && step === this.data.currentStep + 1) {
+          // 允许跳到下一个未完成的步骤
+          this.setData({ currentStep: step });
+      }
   },
 
   async submit() {
+    wx.vibrateShort({ type: 'medium' });
     const account_id = wx.getStorageSync('account_id');
     if (!account_id) {
       wx.showToast({ title: '请先登录', icon: 'none' });
@@ -82,22 +119,21 @@ Page({
     const doc = this.data.doctors[this.data.doctorIndex];
     const date = this.data.date;
     const slot = this.data.slots[this.data.slotIndex] && this.data.slots[this.data.slotIndex].value;
-    if (!dep || !dep.id) {
-      wx.showToast({ title: '请选择科室', icon: 'none' });
+
+    // 统一校验
+    let step = 1;
+    let errorMsg = '';
+    if (!dep || !dep.id) { errorMsg = '请选择科室'; step = 1; }
+    else if (!doc || !doc.id) { errorMsg = '请选择医生'; step = 2; }
+    else if (!date) { errorMsg = '请选择日期'; step = 3; }
+    else if (!slot) { errorMsg = '请选择时段'; step = 4; }
+
+    if (errorMsg) {
+      wx.showToast({ title: errorMsg, icon: 'none' });
+      this.setData({ currentStep: step }); // 跳转到错误步骤
       return;
     }
-    if (!doc || !doc.id) {
-      wx.showToast({ title: '请选择医生', icon: 'none' });
-      return;
-    }
-    if (!date) {
-      wx.showToast({ title: '请选择日期', icon: 'none' });
-      return;
-    }
-    if (!slot) {
-      wx.showToast({ title: '请选择时段', icon: 'none' });
-      return;
-    }
+
     const payload = {
       account_id,
       department_id: dep.id,
@@ -105,40 +141,29 @@ Page({
       date,
       slot,
       regi_type: '普通号',
-      // create as an appointment (候补) by default from booking page
-      force_waitlist: true
+      force_waitlist: true // 预约页强制候补
     };
-    try {
-      // optional quick health check of backend root (helps surface network down vs service error)
-      try {
-        await request({ url: '/', method: 'GET' });
-      } catch (probeErr) {
-        // probe failed - show network message and abort submit
-        console.warn('backend probe failed', probeErr);
-        wx.showToast({ title: '无法连接后端服务，请检查服务是否已启动', icon: 'none' });
-        return;
-      }
 
+    wx.showLoading({ title: '提交中', mask: true });
+    try {
+      // Backend probe logic removed to simplify, relying on main request handling errors.
       const res = await request({ url: '/api/registration/create', method: 'POST', data: payload });
+      wx.hideLoading();
+      
       if (res && res.success) {
-        wx.showToast({ title: '预约已提交', icon: 'success' });
-        wx.navigateTo({ url: '/pages/appointment/appointment' });
+        wx.showToast({ title: '预约候补已提交', icon: 'success' });
+        // 成功后跳转到候补列表页
+        wx.redirectTo({ url: '/pages/appointment/appointment' });
       } else {
         const msg = (res && res.message) ? res.message : '提交失败';
         wx.showToast({ title: msg, icon: 'none' });
         console.warn('createRegistration failed', res);
       }
     } catch (err) {
+      wx.hideLoading();
       console.error('submit err', err);
-      // try to extract server-provided message
-      let message = '网络或服务错误';
-      try {
-        if (err && err.body && err.body.message) message = err.body.message;
-        else if (err && err.body && typeof err.body === 'string') message = err.body;
-        else if (err && err.error && err.error.errMsg) message = err.error.errMsg;
-      } catch (e) { /* ignore */ }
+      let message = '网络或服务错误，请检查网络连接';
       wx.showToast({ title: message, icon: 'none' });
     }
   }
-
 });

@@ -2,41 +2,56 @@
 
 <view class="profile-card" bindtap="onClick" data-action="用户登录">
   <image class="avatar" src="../../assets/avatar.png"></image>
+  
   <view class="profile-info">
-    <text class="username">{{id_top || '请登录'}}</text>
+    <text class="username">{{userName}}</text>
     <view class="desc">
-      <view wx:if="{{id_top}}">进入个人账号管理页</view>
-      <view wx:else>登陆后可使用正常功能</view>
+      <block wx:if="{{ logged }}">
+        <view wx:if="{{isDoctor}}"> 医生模式已激活，点击管理</view>
+        <view wx:else> 欢迎回来！点击进入个人设置</view>
+      </block>
+      <view wx:else>点击登录/注册，享受便捷挂号服务</view>
     </view>
   </view>
-  <text class="arrow-profile">›</text> 
+  <text class="arrow-profile">></text> 
 </view>
 
-<view class="card-grid">
+<view class="list-group">
+  
+  <view class="list-title">🏥 常用服务</view>
 
-  <view class="card" bindtap="onClick" data-action="个人信息">
-    <image class="card-icon" src="../../assets/register.png"></image>
-    <text class="card-text">个人信息</text>
-    <text class="arrow">›</text>
+  <view class="card-item" bindtap="onClick" data-action="我的挂号">
+    <image class="item-icon" src="../../assets/search.png"></image>
+    <text class="item-text">我的挂号/订单</text>
+    <text class="arrow-item">></text>
   </view>
 
-  <view class="card" bindtap="onClick" data-action="我的挂号">
-    <image class="card-icon" src="../../assets/search.png"></image>
-    <text class="card-text">我的挂号</text>
-    <text class="arrow">›</text>
+  <view class="card-item" bindtap="onClick" data-action="我的预约">
+    <image class="item-icon" src="../../assets/appointment.png"></image>
+    <text class="item-text">我的预约/候补</text>
+    <text class="arrow-item">></text>
   </view>
 
-  <view class="card" bindtap="onClick" data-action="我的预约">
-    <image class="card-icon" src="../../assets/appointment.png"></image>
-    <text class="card-text">我的预约</text>
-    <text class="arrow">›</text>
+  <view class="card-item" bindtap="onClick" data-action="个人信息">
+    <image class="item-icon" src="../../assets/register.png"></image>
+    <text class="item-text">个人信息</text>
+    <text class="arrow-item">></text>
   </view>
-
-  <view class="card" bindtap="onClick" data-action="医生登录">
-    <image class="card-icon" src="../../assets/health.png"></image>
-    <text class="card-text">医生登录</text>
-    <text class="arrow">›</text>
-  </view>
-
 </view>
+
+<view class="list-group">
+  <view class="list-title">⚙️ 账户与帮助</view>
+  
+  <view class="card-item" bindtap="onClick" data-action="医生登录">
+    <image class="item-icon doctor" src="../../assets/health.png"></image>
+    <text class="item-text doctor">医生控制台入口</text>
+    <text class="arrow-item">></text>
+  </view>
+  
+  <view class="card-item">
+    <image class="item-icon" src="../../assets/health.png"></image> <text class="item-text">帮助与反馈</text>
+    <text class="arrow-item">></text>
+  </view>
+</view>
+
 </view>

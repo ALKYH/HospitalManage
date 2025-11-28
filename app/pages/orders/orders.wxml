@@ -1,39 +1,86 @@
-<!-- pages/orders/orders.wxml -->
 <view class="container">
 
-<view wx:if="{{message}}">
+<view class="message" wx:if="{{message}}">
   {{message}}
 </view>
 
-<block wx:for="{{orders}}" wx:for-item="item" wx:key="id">
-  <view class="order-item">
-    <view>订单ID：{{item.id}}</view>
-    <view>医生：{{item.doctor_id}}</view>
-    <view>日期/时段：{{item.date}} {{item.slot}}</view>
-    <view>状态：{{item.status}}</view>
+<scroll-view scroll-x enable-flex="true" class="tab-bar">
+  <view class="tab-list">
+    <view 
+      wx:for="{{tabs}}" 
+      wx:key="key" 
+      data-key="{{item.key}}" 
+      bindtap="changeTab"
+      class="tab-item {{activeTab === item.key ? 'active' : ''}}"
+    >
+      <text>{{item.name}}</text>
+      <text class="tab-count" wx:if="{{item.count > 0}}">{{item.count}}</text>
+    </view>
+  </view>
+</scroll-view>
 
-    <view wx:if="{{item.payment_id}}">
-      支付：¥{{item.payment_amount}} （{{item.payment_status}}）
-      <block wx:if="{{item.payment_paid_at}}">
-        支付时间：{{item.payment_paid_at}}
-      </block>
+<block wx:for="{{filteredOrders}}" wx:for-item="item" wx:key="id">
+  <view class="order-item" style="border-left-color: {{item.statusColor}};">
+    
+    <view class="order-header">
+      <view class="order-status-tag" style="background-color: {{item.statusBg}}; color: {{item.statusColor}};">
+        {{item.displayStatus}}
+      </view>
+      <view class="order-id">订单ID: {{item.id}}</view>
     </view>
 
-    <view wx:if="{{!item.payment_id}}">
-      支付：无需支付 / 已包含
+    <view class="main-info">
+      <view class="doctor-name">👨‍⚕️ {{item.doctor_id}}</view>
+      <view class="appointment-time">
+        📅 {{item.date}}
+        <text class="time-slot">{{item.slot}}</text>
+      </view>
     </view>
 
-    <view wx:if="{{item.is_waitlist}}">
-      候补位置：{{item.wait_position + 1}} / {{item.wait_total}}
+    <view class="divider"></view>
+
+    <view class="detail-row">
+      <text class="detail-label">费用:</text>
+      <text class="detail-value" wx:if="{{item.payment_id}}">
+        ¥{{item.payment_amount}} 
+        <text wx:if="{{item.isPaid}}" class="paid-time"> ({{item.payment_paid_at ? '已支付' : '已支付'}})</text>
+        <text wx:elif="{{item.isUnpaid}}" class="unpaid-notice"> (待付款)</text>
+      </text>
+      <text class="detail-value" wx:else>无需支付/已包含</text>
     </view>
 
-    <button wx:if="{{item.payment_id && item.payment_status!='paid'}}" bindtap="onPay" data-id="{{item.payment_id}}">去支付</button>
-    <button wx:if="{{item.status!='cancelled' && item.status!='completed'}}" bindtap="onCancel" data-id="{{item.id}}">退号</button>
+    <view class="detail-row" wx:if="{{item.isWaitlist}}">
+      <text class="detail-label">候补信息:</text>
+      <text class="detail-value waitlist-position">
+        当前位置: {{item.wait_position + 1}} / {{item.wait_total}}
+      </text>
+    </view>
+
+    <view class="order-actions">
+      <button 
+        wx:if="{{item.isUnpaid}}" 
+        class="action-button primary-action" 
+        bindtap="onPay" 
+        data-id="{{item.payment_id}}"
+      >
+        立即支付
+      </button>
+      
+      <button 
+        wx:if="{{!item.isCancelled && !item.isCompleted && (item.isPaid || item.isWaitlist)}}" 
+        class="action-button secondary-action" 
+        bindtap="onCancel" 
+        data-id="{{item.id}}"
+      >
+        {{item.isWaitlist ? '取消候补' : '取消预约'}}
+      </button>
+    </view>
+
   </view>
 </block>
 
-<view wx:if="{{!orders || orders.length === 0}}">
-  暂无订单
+<view class="empty-state" wx:if="{{!filteredOrders || filteredOrders.length === 0 && !message}}">
+  <text>当前分类暂无订单</text>
 </view>
 
 </view>

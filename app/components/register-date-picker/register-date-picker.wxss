@@ -1,39 +1,132 @@
+/* 移除或修改了原有的 .picker-display 样式，因为日期部分被替换 */
+
 .picker-container {
-  padding: 24rpx;
-  background: #fff;
-  border-radius: 16rpx;
-  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-  margin: 24rpx;
-}
-
-.picker-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.picker-display {
-  border: 2rpx solid #e0e0e0;
-  border-radius: 10rpx;
-  padding: 24rpx;
-  font-size: 28rpx;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #007aff;
-  background-color: #f9f9f9;
-}
-
-.arrow {
-  color: #999;
-  font-size: 26rpx;
-}
-
-.picker-result {
-  font-size: 28rpx;
-  color: #444;
-  padding-top: 8rpx;
-}
+    padding: 24rpx;
+    background: #fff;
+    border-radius: 20rpx; /* 更大圆角 */
+    box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.08); /* 更柔和的阴影 */
+    display: flex;
+    flex-direction: column;
+    gap: 30rpx; /* 增大间距 */
+    margin: 24rpx;
+  }
+  
+  .picker-title {
+    font-size: 32rpx; /* 增大字体 */
+    font-weight: 700;
+    color: #1f2937;
+  }
+  
+  /* === 日历滚动视图样式 === */
+  .calendar-scroll-view {
+    white-space: nowrap; /* 允许内部元素不换行 */
+    padding-bottom: 10rpx;
+  }
+  
+  .calendar-item {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 130rpx; /* 火车票式固定宽度 */
+    height: 160rpx;
+    margin-right: 16rpx;
+    padding: 10rpx 0;
+    border-radius: 16rpx;
+    background-color: #f7f7f7;
+    border: 2rpx solid #e5e7eb;
+    transition: all 0.2s;
+  }
+  
+  .calendar-day-name {
+    font-size: 24rpx;
+    color: #9ca3af;
+  }
+  
+  .calendar-day {
+    font-size: 40rpx;
+    font-weight: 800;
+    color: #374151;
+    margin: 4rpx 0;
+  }
+  
+  .calendar-status {
+    font-size: 22rpx;
+    font-weight: 600;
+    padding: 2rpx 10rpx;
+    border-radius: 8rpx;
+    color: #5d9e80;
+    background-color: #d1fae5;
+  }
+  
+  /* 可选中的日期悬停/点击反馈 */
+  .calendar-item:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  
+  /* 选中状态 */
+  .calendar-item.selected {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-color: #059669;
+    box-shadow: 0 4rpx 12rpx rgba(16, 185, 129, 0.3);
+  }
+  .calendar-item.selected .calendar-day-name, 
+  .calendar-item.selected .calendar-day {
+    color: #ffffff;
+  }
+  .calendar-item.selected .calendar-status {
+    background-color: #ffffff;
+    color: #059669;
+  }
+  
+  /* 无号源/禁用状态 */
+  .calendar-item.disabled {
+    background-color: #f3f4f6;
+    border-color: #e5e7eb;
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  .calendar-item.disabled .calendar-day-name,
+  .calendar-item.disabled .calendar-day {
+    color: #a0a0a0;
+  }
+  .calendar-item.disabled .calendar-status {
+    background-color: #e5e7eb;
+    color: #a0a0a0;
+  }
+  
+  /* 当前选中日期提示 */
+  .selected-date-tip {
+    font-size: 28rpx;
+    color: #6b7280;
+  }
+  .date-text {
+    font-weight: 600;
+    color: #374151;
+  }
+  
+  /* === 时间段选择器样式（保持简洁） === */
+  /* 原有的 picker-display 现用于时间段选择 */
+  .picker-display {
+    border: 2rpx solid #e0e0e0;
+    border-radius: 12rpx;
+    padding: 24rpx;
+    font-size: 30rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #059669; /* 主题色 */
+    background-color: #f9f9f9;
+  }
+  
+  .arrow {
+    color: #059669;
+    font-size: 26rpx;
+  }
+  
+  .picker-result {
+    font-size: 28rpx;
+    color: #444;
+    padding-top: 8rpx;
+  }

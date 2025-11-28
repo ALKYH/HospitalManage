@@ -1,16 +1,25 @@
 <view class="picker-container">
   <view class="picker-title">请选择就诊时间：</view>
 
-  <!-- 日期选择器（仅显示有排班的日期） -->
-  <picker mode="selector" range="{{dates}}" value="{{selectedDateIndex}}" bindchange="onDateChange">
-    <view class="picker-display">
-      <text>{{ dates[selectedDateIndex] || '点击选择日期' }}</text>
-      <text class="arrow">▼</text>
-    </view>
-  </picker>
+    <scroll-view class="calendar-scroll-view" scroll-x enable-flex scroll-into-view="date-{{selectedDate}}">
+    <block wx:for="{{calendarDates}}" wx:key="fullDate">
+      <view 
+        id="date-{{item.fullDate}}"
+        class="calendar-item {{item.fullDate === selectedDate ? 'selected' : ''}} {{!item.hasAvailability ? 'disabled' : ''}}"
+        data-date="{{item.fullDate}}" 
+        bindtap="onCalendarTap"
+      >
+        <view class="calendar-day-name">{{ item.dayName }}</view>
+        <view class="calendar-day">{{ item.day }}</view>
+        <view class="calendar-status">{{ item.hasAvailability ? '可约' : '无号' }}</view>
+      </view>
+    </block>
+  </scroll-view>
+  <view class="selected-date-tip">
+    当前选中：<text class="date-text">{{selectedDate || '请选择日期'}}</text>
+  </view>
 
-  <!-- 时间段选择器 -->
-  <picker mode="selector" range="{{timeSlots}}" value="{{selectedTimeIndex}}" bindchange="onTimeChange">
+    <picker mode="selector" range="{{timeSlots}}" value="{{selectedTimeIndex}}" bindchange="onTimeChange">
     <view class="picker-display">
       <text>{{ timeSlots[selectedTimeIndex] || '点击选择时间段' }}</text>
       <text class="arrow">▼</text>
@@ -19,7 +28,7 @@
 
   <view wx:if="{{selectedDate && selectedTime}}">
     <view class="picker-result">
-      您选择了：{{ selectedDate }} {{ selectedTime }}
+       您的预约时间：<text style="color:#07c160; font-weight: 600;">{{ selectedDate }} {{ selectedTime }}</text>
     </view>
   </view>
 </view>

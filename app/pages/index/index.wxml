@@ -1,65 +1,100 @@
 <view class="container">
+  <view class="bg-shape shape-1"></view>
+  <view class="bg-shape shape-2"></view>
 
-<view class="swiper-area">
-  <swiper class="header-swiper"
-          indicator-dots="true"
-          autoplay="true"
-          interval="3800"
-          duration="800"
-          circular="true"
-          indicator-color="rgba(255, 255, 255, 0.5)"
-          indicator-active-color="#fff"> <swiper-item>
-      <image src="../../assets/header.jpg" class="header-image" mode="aspectFill"></image>
-    </swiper-item>
-    <swiper-item>
-      <image src="../../assets/header2.jpg" class="header-image" mode="aspectFill"></image>
-    </swiper-item>
-    <swiper-item>
-      <image src="../../assets/header3.jpg" class="header-image" mode="aspectFill"></image>
-    </swiper-item>
-  </swiper>
-</view>
-
-  <view class="bigcard-group"> <view class="bigcard" bindtap="onClick" data-action="挂号">
-    <view class="bigcard-left">
-      <image class="card-icon" src="../../assets/register.png"></image>
-      <text class="bigcard-text">我要挂号</text>
+  <view wx:if="{{isLoading}}" class="skeleton-container">
+    <view class="skeleton-swiper shimmer"></view>
+    <view class="skeleton-group">
+      <view class="skeleton-card-lg shimmer"></view>
+      <view class="skeleton-card-lg shimmer"></view>
     </view>
-    <text class="bigcard-arrow">›</text>
-  </view>
-
-  <view class="bigcard" bindtap="onClick" data-action="预约">
-    <view class="bigcard-left">
-      <image class="card-icon" src="../../assets/appointment.png"></image>
-      <text class="bigcard-text">我要预约</text>
+    <view class="skeleton-grid">
+      <view class="skeleton-card-sm shimmer" wx:for="{{[1,2,3,4]}}" wx:key="*this"></view>
     </view>
-    <text class="bigcard-arrow">›</text>
+  </view>
+
+  <view wx:else class="content-container fade-in-up">
+    
+    <view class="swiper-area">
+      <swiper class="header-swiper"
+              indicator-dots="true"
+              autoplay="true"
+              interval="4000"
+              duration="600"
+              circular="true"
+              previous-margin="0rpx"
+              next-margin="0rpx"
+              indicator-color="rgba(255, 255, 255, 0.4)"
+              indicator-active-color="#ffffff">
+        <block wx:for="{{banners}}" wx:key="*this">
+          <swiper-item>
+            <view class="swiper-item-wrap">
+              <image src="{{item}}" class="header-image" mode="aspectFill"></image>
+            </view>
+          </swiper-item>
+        </block>
+      </swiper>
+    </view>
+
+    <view class="bigcard-group">
+      <view class="bigcard card-blue ripple-effect" bindtap="onClick" data-action="挂号">
+        <view class="bigcard-bg-circle"></view>
+        <view class="bigcard-left">
+          <view class="icon-wrap">
+            <image class="card-icon" src="../../assets/register.png"></image>
+          </view>
+          <view class="text-group">
+            <text class="bigcard-title">我要挂号</text>
+            <text class="bigcard-desc">当日号源 / 实时排队</text>
+          </view>
+        </view>
+        <view class="arrow-btn">Go</view>
+      </view>
+
+      <view class="bigcard card-green ripple-effect" bindtap="onClick" data-action="预约">
+        <view class="bigcard-bg-circle"></view>
+        <view class="bigcard-left">
+          <view class="icon-wrap">
+            <image class="card-icon" src="../../assets/appointment.png"></image>
+          </view>
+          <view class="text-group">
+            <text class="bigcard-title">我要预约</text>
+            <text class="bigcard-desc">专家门诊 / 提前安排</text>
+          </view>
+        </view>
+        <view class="arrow-btn">Go</view>
+      </view>
+    </view>
+
+    <view class="card-grid">
+      <view class="card ripple-effect" bindtap="onClick" data-action="查询">
+        <view class="icon-circle c-purple">
+          <image class="card-icon-small" src="../../assets/search.png"></image>
+        </view>
+        <text class="card-text">报告查询</text>
+      </view>
+
+      <view class="card ripple-effect" bindtap="onClick" data-action="健康档案">
+        <view class="icon-circle c-orange">
+          <image class="card-icon-small" src="../../assets/health.png"></image>
+        </view>
+        <text class="card-text">智能分诊</text>
+      </view>
+
+      <view class="card ripple-effect" bindtap="onClick" data-action="医生登录">
+        <view class="icon-circle c-cyan">
+          <image class="card-icon-small" src="../../assets/health.png"></image>
+        </view>
+        <text class="card-text">医生工作台</text>
+      </view>
+
+      <view class="card ripple-effect" bindtap="onClick" data-action="医生登录">
+        <view class="icon-circle c-pink">
+           <image class="card-icon-small" src="../../assets/health.png"></image>
+        </view>
+        <text class="card-text">科室简介</text>
+      </view>
+    </view>
+
   </view>
 </view>
-
-<view class="card-grid">
-
-  <view class="card" bindtap="onClick" data-action="查询">
-    <image class="card-icon-small" src="../../assets/search.png"></image> <text class="card-text">我要查询</text>
-  </view>
-
-  <view class="card" bindtap="onClick" data-action="健康档案">
-    <image class="card-icon-small" src="../../assets/health.png"></image>
-    <text class="card-text">健康档案</text>
-  </view>
-
-  <view class="card" bindtap="onClick" data-action="医生登录">
-    <image class="card-icon-small" src="../../assets/health.png"></image>
-    <text class="card-text">医生登录</text>
-  </view>
-  
-  <view class="card" bindtap="onClick" data-action="医生登录">
-    <image class="card-icon-small" src="../../assets/health.png"></image>
-    <text class="card-text">医生登录</text>
-  </view>
-
-
-  </view>
-  
-</view>
-

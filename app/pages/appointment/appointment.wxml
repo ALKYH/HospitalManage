@@ -1,29 +1,79 @@
-<!-- pages/appointment/appointment.wxml -->
 <view class="container">
-	<view wx:if="{{message}}" class="msg">{{message}}</view>
+  <view class="bg-blob blob-1"></view>
+  <view class="bg-blob blob-2"></view>
 
-	<view wx:if="{{loading}}" class="loading">加载中...</view>
+  <view wx:if="{{message}}" class="global-msg fade-in">
+    <icon type="warn" size="16" color="#f56c6c"></icon>
+    <text>{{message}}</text>
+  </view>
 
-	<block wx:if="{{!loading}}">
-				<block wx:for="{{ordersList}}" wx:key="id">
-						<view class="item">
-						<view style="display:flex;justify-content:space-between;align-items:center;">
-							<text class="item-title">{{item.doctor && item.doctor.name ? item.doctor.name : ('医生#' + item.doctor_id)}}{{ item.doctor && item.doctor.department_name ? (' / ' + item.doctor.department_name) : ''}}</text>
-			  <text wx:if="{{item.available===true}}" class="badge available">有号源</text>
-			  <text wx:elif="{{item.available===false}}" class="badge reserved">无号源</text>
-			  <text wx:elif="{{item.status==='expired'}}" class="badge expired">已过期</text>
-			</view>
-				<text class="item-sub">{{item.date}}  {{item.slot}}</text>
-												<!-- 取消候补位置显示 -->
+  <view wx:if="{{loading}}" class="skeleton-container">
+    <block wx:for="{{[1,2,3]}}" wx:key="*this">
+      <view class="skeleton-card shimmer">
+        <view class="sk-header"></view>
+        <view class="sk-body"></view>
+        <view class="sk-footer"></view>
+      </view>
+    </block>
+  </view>
 
-				<view class="actions">
-					<button data-orderid="{{item.id}}" bindtap="onGoRegister" class="primary" wx:if="{{item.available===true}}">去挂号</button>
-					<button data-orderid="{{item.id}}" bindtap="onCancel" class="danger" wx:if="{{item.status!=='expired'}}">取消预约</button>
-				</view>
-			</view>
-		</block>
+  <block wx:else>
+    <view class="list-container">
+      
+      <block wx:for="{{ordersList}}" wx:key="id">
+        <view class="card {{item.view.isActionable ? 'card-active' : ''}} slide-up" style="animation-delay: {{index * 0.1}}s">
+          
+          <view class="card-header">
+            <view class="doctor-info">
+              <view class="doctor-name">{{item.view.doctorName}}</view>
+              <view class="dept-name" wx:if="{{item.view.deptName}}">{{item.view.deptName}}</view>
+            </view>
+            <view class="status-badge" style="background: {{item.view.badgeBg}}; color: {{item.view.badgeColor}}">
+              {{item.view.statusText}}
+            </view>
+          </view>
 
-				<view wx:if="{{!ordersList || ordersList.length === 0}}" class="empty">暂无预约记录</view>
-	</block>
+          <view class="divider"></view>
 
+          <view class="card-body">
+            <view class="info-row">
+              <text class="label">预约日期</text>
+              <text class="value date-text">{{item.date}}</text>
+            </view>
+            <view class="info-row">
+              <text class="label">时段</text>
+              <text class="value slot-text">{{item.slot}}</text>
+            </view>
+            <view class="info-row" wx:if="{{item.is_waitlist && !item.view.isActionable}}">
+               <text class="label">当前排位</text>
+               <text class="value wait-text">第 {{item.wait_position + 1}} 位</text>
+            </view>
+          </view>
+
+          <view class="card-footer">
+            <block wx:if="{{item.view.isActionable}}">
+              <view class="action-tip">👏 恭喜，现在可以挂号了！</view>
+              <button class="btn btn-primary pulse-anim" data-orderid="{{item.id}}" bindtap="onGoRegister">
+                立即挂号
+              </button>
+            </block>
+            
+            <block wx:else>
+              <button class="btn btn-ghost" data-orderid="{{item.id}}" bindtap="onCancel" wx:if="{{item.status!=='expired'}}">
+                取消候补
+              </button>
+              <view wx:else class="expired-tip">已无法操作</view>
+            </block>
+          </view>
+
+        </view>
+      </block>
+
+      <view wx:if="{{!ordersList || ordersList.length === 0}}" class="empty-state fade-in">
+        <image class="empty-img" src="https://img.icons8.com/bubbles/200/calendar.png" mode="aspectFit"></image>
+        <text>暂无候补记录</text>
+      </view>
+
+    </view>
+  </block>
 </view>

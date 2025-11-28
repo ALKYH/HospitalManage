@@ -1,156 +1,177 @@
 /* 页面背景 */
 .container {
-  padding: 30rpx 30rpx; /* 调整左右边距，与卡片边距更统一 */
-  background: linear-gradient(180deg, #e8f0ff 0%, #f7f9fc 100%);
-  min-height: 100vh;
-  /* 移除 flex-direction 和 align-items, 让卡片自适应全宽 */
-}
-
-/* 顶部个人信息卡 */
-.profile-card {
-  width: 90%; /* 撑满 container 宽度 */
-  height: 190rpx;
-  background: linear-gradient(135deg, #5b9df9, #6fc1ff);
-  padding: 40rpx 40rpx; /* 减少纵向 padding，增加横向 padding */
-  border-radius: 36rpx; /* 增大圆角，更柔和 */
-  margin-bottom: 50rpx; /* 增加与下方卡片的距离 */
-  box-shadow: 0 20rpx 50rpx rgba(91, 157, 249, 0.40); /* 增大并柔化阴影 */
-  color: #fff;
-  position: relative;
-  overflow: hidden;
+    /* 移除左右 padding，让内部卡片自己控制边距 */
+    padding: 0; 
+    background: #f7f9fc;
+    min-height: 100vh;
+    /* 确保内部元素居中对齐 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
   
-  /* 核心布局优化：改为 flex 布局，实现左右对齐 */
-  display: flex;
-  align-items: center; /* 垂直居中 */
-}
-
-/* 顶部光斑 */
-.profile-card::before {
-  content: "";
-  position: absolute;
-  width: 280rpx; /* 增大光斑 */
-  height: 280rpx; /* 增大光斑 */
-  background: rgba(255, 255, 255, 0.18);
-  top: -80rpx; /* 调整位置 */
-  right: -80rpx; /* 调整位置 */
-  border-radius: 50%;
-  filter: blur(28rpx); /* 增大模糊 */
-}
-
-/* 头像 */
-.avatar {
-  width: 120rpx; /* 略微缩小头像 */
-  height: 120rpx; /* 略微缩小头像 */
-  border-radius: 50%;
-  margin-right: 30rpx; /* 增加右侧间距 */
-  margin-left: 0; /* 移除原来的左边距 */
-  border: 6rpx solid rgba(255,255,255,0.8); /* 略微加粗边框 */
-  box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.2); /* 增强阴影 */
-  flex-shrink: 0; /* 防止被挤压 */
-}
-
-/* 用户信息文本区域 */
-.profile-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex: 1; /* 占据剩余空间 */
-}
-
-/* 用户名 */
-.username {
-  font-size: 48rpx; /* 略微缩小字体，更精致 */
-  font-weight: 700;
-  margin-left: 0; /* 移除原来的左边距 */
-  letter-spacing: 0rpx;
-  line-height: 1.2; /* 调整行高 */
-}
-
-/* 说明文字 */
-.desc {
-  font-size: 26rpx; /* 略微缩小字体 */
-  opacity: 0.85;
-  margin-top: 6rpx;
-}
-
-/* 个人卡片右箭头样式 */
-.arrow-profile {
-  font-size: 56rpx;
-  color: #fff;
-  opacity: 0.9;
-  margin-left: 30rpx;
-  align-self: center;
-}
-
-/* 功能卡片宫格区 */
-.card-grid {
-  width: 90%; /* 撑满 container 宽度 */
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx; /* 略微缩小间距 */
-}
-
-/* 功能卡片（列表风格） */
-.card {
-  width: 100%; /* 撑满 card-grid 宽度 */
-  height: 140rpx; /* 略微减少高度 */
-  background: #ffffff;
-  border-radius: 28rpx; /* 增大圆角 */
-  padding: 0 35rpx; /* 增加横向 padding */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 12rpx 30rpx rgba(0,0,0,0.08); /* 增大并柔化阴影 */
-  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* 优化过渡效果 */
-  position: relative;
-  overflow: hidden; /* 隐藏溢出的伪元素 */
-}
-
-/* 卡片背景闪光 - 优化为右下角或左上角的点缀 */
-.card::after {
-  content: "";
-  position: absolute;
-  top: -40rpx; /* 调整位置 */
-  left: -40rpx; /* 调整位置 */
-  width: 120rpx;
-  height: 120rpx;
-  background: rgba(91, 157, 249, 0.12);
-  border-radius: 50%;
-  filter: blur(20rpx);
-  z-index: 1;
-}
-
-/* 卡片点击效果 */
-.card:active {
-  transform: scale(0.98); /* 更柔和的点击缩小 */
-  box-shadow: 0 5rpx 15rpx rgba(0,0,0,0.1);
-  opacity: 1; /* 移除 opacity 变化 */
-}
-
-/* 卡片 icon */
-.card-icon {
-  width: 60rpx; /* 略微缩小 icon */
-  height: 60rpx;
-  margin-right: 30rpx;
-  z-index: 2; /* 确保在闪光点之上 */
-}
-
-/* 卡片标题 */
-.card-text {
-  font-size: 32rpx; /* 略微缩小字体 */
-  font-weight: 600;
-  flex: 1;
-  text-align: left;
-  color: #2c2c2c; /* 颜色略微加深，增强对比度 */
-  letter-spacing: 0rpx;
-  z-index: 2;
-}
-
-/* 右箭头 */
-.arrow {
-  font-size: 40rpx; /* 略微缩小箭头 */
-  color: #aaa;
-  font-weight: 700;
-  margin-left: 20rpx;
-  z-index: 2;
-}
+  /* 顶部个人信息卡 - 高光突出 */
+  .profile-card {
+    /* 修正宽度：使用 calc 确保在各种屏幕上都能撑满且留出边距 */
+    width: calc(90% - 60rpx); 
+    height: 200rpx;
+    background: linear-gradient(135deg, #2b68ff 0%, #5b9df9 100%); 
+    padding: 40rpx; 
+    border-radius: 36rpx; 
+    margin-top: 50rpx; 
+    margin-bottom: 60rpx; 
+    /* 确保卡片居中 */
+    margin-left: 30rpx; 
+    margin-right: 30rpx; 
+    box-shadow: 0 15rpx 40rpx rgba(43, 104, 255, 0.45); 
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center; 
+    z-index: 10;
+  }
+  
+  /* 顶部光斑（装饰性） */
+  .profile-card::before {
+    content: "";
+    position: absolute;
+    width: 300rpx; 
+    height: 300rpx; 
+    background: rgba(255, 255, 255, 0.2);
+    top: -100rpx; 
+    right: -100rpx; 
+    border-radius: 50%;
+    filter: blur(30rpx); 
+    z-index: 1;
+  }
+  
+  /* 头像 */
+  .avatar {
+    width: 120rpx; 
+    height: 120rpx; 
+    border-radius: 50%;
+    margin-right: 30rpx; 
+    border: 6rpx solid rgba(255,255,255,0.95); 
+    box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.2);
+    flex-shrink: 0; 
+    z-index: 5;
+  }
+  
+  /* 用户信息文本区域 */
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1; 
+    z-index: 5;
+  }
+  
+  /* 用户名 */
+  .username {
+    font-size: 40rpx; 
+    font-weight: 700;
+    line-height: 1.2; 
+    /* 确保文本不被截断 */
+    word-break: break-all;
+  }
+  
+  /* 说明文字 */
+  .desc {
+    font-size: 26rpx; 
+    opacity: 0.9;
+    margin-top: 8rpx;
+  }
+  
+  /* 个人卡片右箭头样式 */
+  .arrow-profile {
+    font-size: 50rpx;
+    color: #fff;
+    opacity: 0.95;
+    margin-left: 30rpx;
+    align-self: center;
+    z-index: 5;
+  }
+  
+  /* 功能列表区 */
+  .list-group {
+    /* 修正宽度：与 profile-card 保持一致 */
+    width: calc(100% - 60rpx);
+    margin-left: 30rpx; 
+    margin-right: 30rpx; 
+    
+    margin-bottom: 40rpx;
+    background-color: #fff;
+    border-radius: 28rpx;
+    box-shadow: 0 5rpx 20rpx rgba(0,0,0,0.06);
+    padding: 0 20rpx;
+  }
+  
+  /* 列表标题 */
+  .list-title {
+    font-size: 28rpx;
+    color: #6c757d;
+    font-weight: 600;
+    padding: 20rpx 15rpx 10rpx 15rpx;
+  }
+  
+  /* 功能列表项 */
+  .card-item {
+    width: 100%; 
+    height: 100rpx; 
+    padding: 0 15rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+  
+  /* 分隔线 */
+  .card-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 15rpx;
+    right: 15rpx;
+    height: 1rpx;
+    background-color: #f0f0f0;
+  }
+  
+  /* 卡片点击效果 */
+  .card-item:active {
+    background-color: #f7f7f7;
+  }
+  
+  /* 列表 icon */
+  .item-icon {
+    width: 50rpx; 
+    height: 50rpx;
+    margin-right: 25rpx;
+    flex-shrink: 0;
+  }
+  
+  /* 列表标题 */
+  .item-text {
+    font-size: 30rpx; 
+    font-weight: 500;
+    flex: 1;
+    text-align: left;
+    color: #333; 
+  }
+  
+  /* 医生入口特殊样式 */
+  .item-text.doctor {
+    color: #1aad19;
+  }
+  .item-icon.doctor {
+    /* 移除滤镜，使用原始图标 */
+  }
+  
+  /* 右箭头 */
+  .arrow-item {
+    font-size: 36rpx; 
+    color: #ccc;
+    font-weight: 700;
+    margin-left: 20rpx;
+    flex-shrink: 0;
+  }

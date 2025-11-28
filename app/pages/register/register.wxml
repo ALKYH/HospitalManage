@@ -1,60 +1,79 @@
 <view class="container">
-  <!-- 页面标题 -->
-  <view class="header">
+    <view class="header">
     <text class="main-title">智能挂号服务</text>
-    <text class="sub-title">一步完成您的就诊预约</text>
+    <text class="sub-title">请按步骤完成挂号信息选择</text>
   </view>
 
-  <!-- 科室选择卡片 -->
-  <view class="card">
-    <text class="card-title">科室选择</text>
+    <view class="card {{currentStep === 1 ? 'active' : ''}}" data-step="1">
+    <view class="card-header">
+      <view class="step-badge step-1">1</view>
+      <text class="card-title">选择科室</text>
+    </view>
     <view class="card-content">
-      <button class="action-btn" bindtap="goToDepartment">选择科室</button>
-      <picker mode="selector" range="{{departments}}" bindchange="onDeptChange" disabled="true">
-        <view class="picker-display">{{selectedDept.name || '请选择科室'}}</view>
-      </picker>
+      <view class="picker-group">
+        <view class="picker-display selected-label">{{selectedDept.name || '请选择科室'}}</view>
+        <button class="action-btn" bindtap="goToDepartment">立即选择科室</button>
+      </view>
     </view>
   </view>
 
-  <!-- 医生选择卡片 -->
-  <view class="card">
-    <text class="card-title">医生选择</text>
+    <view class="card {{currentStep === 2 ? 'active' : ''}}" data-step="2">
+    <view class="card-header">
+      <view class="step-badge step-2">2</view>
+      <text class="card-title">选择医生</text>
+    </view>
     <view class="card-content">
-      <picker mode="selector" range="{{doctors}}" range-key="name" bindchange="onDoctorChange">
-        <view class="picker-display">{{selectedDoctor.name || '请选择医生'}}</view>
+      <picker mode="selector" range="{{doctors}}" range-key="name" value="{{selectedDoctor.id ? -1 : 0}}" bindchange="onDoctorChange" disabled="{{currentStep < 2 || doctors.length === 0}}">
+        <view class="picker-display {{!selectedDoctor.id && selectedDoctor !== '请选择医生' ? 'disabled-text' : ''}}">
+          {{selectedDoctor.name || '请选择医生'}}
+        </view>
       </picker>
+      <text wx:if="{{selectedDept.id && doctors.length === 0}}" class="tip-text">该科室暂无医生排班</text>
     </view>
   </view>
 
-  <!-- 号别选择卡片 -->
-  <view class="card">
-    <text class="card-title">号别选择</text>
+    <view class="card {{currentStep === 3 ? 'active' : ''}}" data-step="3">
+    <view class="card-header">
+      <view class="step-badge step-3">3</view>
+      <text class="card-title">选择号别与查询号源</text>
+    </view>
     <view class="card-content">
-      <picker mode="selector" range="{{registerRange}}" bindchange="onRegiChange">
+      <picker mode="selector" range="{{registerRange}}" value="{{registerRange.indexOf(selectedRegi)}}" bindchange="onRegiChange" disabled="{{currentStep < 3}}">
         <view class="picker-display">{{selectedRegi || '请选择号别'}}</view>
       </picker>
       <block wx:if="{{availableTypesList && availableTypesList.length}}">
-        <text class="sub-note">可用号源：</text>
-        <view class="types">
-          <block wx:for="{{availableTypesList}}" wx:key="type">
-            <view class="type-item">{{item.type}}: {{item.count}}</view>
-          </block>
+        <view class="types-container">
+          <text class="sub-note">未来可用号源总计：</text>
+          <view class="types">
+            <block wx:for="{{availableTypesList}}" wx:key="type">
+              <view class="type-item {{item.type === selectedRegiKey ? 'type-active' : ''}}">
+                {{item.type}}:<text class="count-num">{{item.count}}</text>
+              </view>
+            </block>
+          </view>
         </view>
       </block>
+      <text wx:else class="tip-text">请先选择医生以查询号源情况</text>
     </view>
   </view>
 
-  <!-- 日期与时间选择 -->
-  <view class="card">
-    <text class="card-title">就诊日期与时间</text>
+    <view class="card {{currentStep === 4 ? 'active' : ''}}" data-step="4">
+    <view class="card-header">
+      <view class="step-badge step-4">4</view>
+      <text class="card-title">选择就诊日期与时段</text>
+    </view>
     <view class="card-content">
-  <register-date-picker availability="{{availability}}" regiType="{{selectedRegiKey}}" bind:timeSelected="onTimeSelected" />
+        <register-date-picker 
+          availability="{{availability}}" 
+          regiType="{{selectedRegiKey}}" 
+          bind:timeSelected="onTimeSelected" 
+        />
     </view>
   </view>
 
-  <!-- 挂号按钮 -->
-  <button class="register-btn" bindtap="register">立即挂号</button>
+    <button class="register-btn {{selectedDate && selectedSlot ? 'ready' : ''}}" bindtap="register">
+    {{selectedDate && selectedSlot ? '确认并立即挂号' : '请完成以上选择'}}
+  </button>
 
-  <!-- 消息提示 -->
-  <view wx:if="{{message}}" class="message">{{message}}</view>
+    <view wx:if="{{message}}" class="message">{{message}}</view>
 </view>

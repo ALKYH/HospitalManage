@@ -1,36 +1,69 @@
-<!-- pages/book/book.wxml -->
 <view class="container">
-  <view class="field">
-    <text class="label">科室</text>
-    <picker mode="selector" range="{{deptOptions}}" value="{{deptIndex}}" bindchange="onDeptChange">
-      <view class="picker">{{deptOptions[deptIndex] || '请选择科室'}}</view>
+
+<view class="header fade-in-down">
+  <text class="title">专家预约候补</text>
+  <text class="subtitle">请按步骤选择，成功后将进入候补队列。</text>
+</view>
+
+<view wx:if="{{isLoading}}" class="skeleton-container">
+  <block wx:for="{{[1,2,3,4]}}" wx:key="*this">
+    <view class="skeleton-field shimmer"></view>
+  </block>
+</view>
+
+<view wx:else class="form-wrapper slide-up">
+  
+  <view class="field-card {{currentStep === 1 ? 'active' : ''}}" data-step="1" bindtap="onFieldTap">
+    <view class="field-header">
+      <view class="step-badge step-1">1</view>
+      <text class="label">选择科室</text>
+      <text class="tip-text" wx:if="{{currentStep === 1}}">点击选择</text>
+    </view>
+    <picker mode="selector" range="{{deptOptions}}" value="{{deptIndex}}" bindchange="onDeptChange" disabled="{{currentStep !== 1}}">
+      <view class="picker">{{deptOptions[deptIndex] || '点击此处选择科室'}}</view>
     </picker>
   </view>
 
-  <view class="field">
-    <text class="label">医生</text>
-    <picker mode="selector" range="{{doctorsNames}}" value="{{doctorIndex}}" bindchange="onDoctorChange">
-      <view class="picker">{{doctors[doctorIndex] ? doctors[doctorIndex].name : '请选择医生'}}</view>
+  <view class="field-card {{currentStep === 2 ? 'active' : ''}}" data-step="2" bindtap="onFieldTap">
+    <view class="field-header">
+      <view class="step-badge step-2">2</view>
+      <text class="label">选择医生</text>
+      <text class="tip-text" wx:if="{{currentStep === 2}}">{{doctorsNames.length > 0 ? '点击选择' : '请先选择科室'}}</text>
+    </view>
+    <picker mode="selector" range="{{doctorsNames}}" value="{{doctorIndex}}" bindchange="onDoctorChange" disabled="{{currentStep < 2 || doctorsNames.length === 0}}">
+      <view class="picker {{doctorsNames.length === 0 ? 'disabled-text' : ''}}">
+        {{doctors[doctorIndex] ? doctors[doctorIndex].name : '请选择医生'}}
+      </view>
     </picker>
   </view>
 
-  <view class="field">
-    <text class="label">日期</text>
-    <picker mode="date" value="{{date}}" start="{{minDate}}" bindchange="onDateChange">
-      <view class="picker">{{date || '请选择日期'}}</view>
+  <view class="field-card {{currentStep === 3 ? 'active' : ''}}" data-step="3" bindtap="onFieldTap">
+    <view class="field-header">
+      <view class="step-badge step-3">3</view>
+      <text class="label">选择预约日期</text>
+      <text class="tip-text" wx:if="{{currentStep === 3}}">点击选择</text>
+    </view>
+    <picker mode="date" value="{{date}}" start="{{minDate}}" bindchange="onDateChange" disabled="{{currentStep < 3}}">
+      <view class="picker {{!date ? 'disabled-text' : ''}}">{{date || '请选择日期'}}</view>
     </picker>
   </view>
 
-  <view class="field">
-    <text class="label">时段</text>
-    <picker mode="selector" range="{{slotsLabels}}" value="{{slotIndex}}" bindchange="onSlotChange">
-      <view class="picker">{{slots[slotIndex].label}}</view>
+  <view class="field-card {{currentStep === 4 ? 'active' : ''}}" data-step="4" bindtap="onFieldTap">
+    <view class="field-header">
+      <view class="step-badge step-4">4</view>
+      <text class="label">选择时段</text>
+      <text class="tip-text" wx:if="{{currentStep === 4}}">点击选择</text>
+    </view>
+    <picker mode="selector" range="{{slotsLabels}}" value="{{slotIndex}}" bindchange="onSlotChange" disabled="{{currentStep < 4}}">
+      <view class="picker {{slots[slotIndex] ? '' : 'disabled-text'}}">{{slots[slotIndex].label}}</view>
     </picker>
   </view>
-
+  
   <view class="actions">
-    <button class="primary" bindtap="submit">提交预约</button>
+    <button class="btn btn-primary ripple-effect" bindtap="submit">提交预约候补</button>
   </view>
+  
+</view>
 
-  <view class="message">{{message}}</view>
+<view class="message">{{message}}</view>
 </view>
