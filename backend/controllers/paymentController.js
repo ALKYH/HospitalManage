@@ -3,8 +3,7 @@ const db = require('../db');
 
 exports.createPayment = async (req, res) => {
   try {
-
-    const { account_id ,order_id, amount, currency } = req.body;
+    const { account_id, order_id, amount, currency } = req.body;
     if (!account_id || !amount) return res.status(400).json({ success: false, message: 'missing params' });
     const payment = await paymentService.createPayment({ account_id, order_id, amount, currency });
     // if linked to order, update order.payment_id

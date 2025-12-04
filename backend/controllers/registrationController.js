@@ -4,7 +4,7 @@ const paymentService = require('../services/paymentService');
 
 exports.createRegistration = async (req, res) => {
   try {
-    const { account_id , department_id, doctor_id, date, slot, note, regi_type } = req.body;
+    const { account_id, department_id, doctor_id, date, slot, note, regi_type } = req.body;
     if (!account_id || !department_id || !doctor_id || !date || !slot) {
       return res.status(400).json({ success: false, message: 'missing parameters' });
     }
