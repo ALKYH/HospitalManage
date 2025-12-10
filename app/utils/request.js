@@ -1,5 +1,5 @@
 // utils/request.js
-const BASE_URL = (typeof __wxConfigBaseUrl !== 'undefined') ? __wxConfigBaseUrl : "http://localhost:3000";
+const BASE_URL = (typeof __wxConfigBaseUrl !== 'undefined') ? __wxConfigBaseUrl : "http://172.16.80.20:3000";
 
 /**
  * 通用请求方法，统一后端返回的 success/错误结构
