@@ -124,51 +124,91 @@ async function cancelRegistration(orderId, cancelledBy) {
   try {
     await conn.beginTransaction();
 
+    // 修复：使用正确的解构方式
     const [rows] = await conn.query('SELECT * FROM orders WHERE id = ? FOR UPDATE', [orderId]);
+    if (!rows || rows.length === 0) {
+      await conn.rollback();
+      conn.release();
+      throw new Error('order not found');
+    }
+    
     const order = rows[0];
-    if (!order) throw new Error('order not found');
 
     if (order.status === 'cancelled') {
       await conn.commit();
+      conn.release();
       return order;
     }
 
-    // 更新订单状态，并清除候补标志 is_waitlist（避免残留）
-    await conn.query('UPDATE orders SET status = ?, is_waitlist = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?', ['cancelled', orderId]);
+    // 更新订单状态
+    await conn.query(
+      'UPDATE orders SET status = ?, is_waitlist = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+      ['cancelled', orderId]
+    );
 
     // 若之前是 confirmed，需要减少 day-level booked 并 promote day-level waiting queue
     if (order.status === 'confirmed') {
       // lock all availabilities for this doctor/date
-  const [availRows] = await conn.query('SELECT * FROM doctor_availability WHERE doctor_id = ? AND date = ? FOR UPDATE', [order.doctor_id, order.date]);
-      const rep = availRows && availRows[0];
-      if (rep && rep.booked > 0) {
-        const newBooked = rep.booked - 1;
-        await conn.query('UPDATE doctor_availability SET booked = ? WHERE doctor_id = ? AND date = ?', [newBooked, order.doctor_id, order.date]);
+      const [availRows] = await conn.query(
+        'SELECT * FROM doctor_availability WHERE doctor_id = ? AND date = ? FOR UPDATE', 
+        [order.doctor_id, order.date]
+      );
+      
+      // 修复：检查 availRows 是否存在且有数据
+      if (availRows && availRows.length > 0) {
+        const rep = availRows[0];
+        if (rep.booked > 0) {
+          const newBooked = rep.booked - 1;
+          await conn.query(
+            'UPDATE doctor_availability SET booked = ? WHERE doctor_id = ? AND date = ?', 
+            [newBooked, order.doctor_id, order.date]
+          );
 
-        // 尝试提升候补队列：查找同医生同日期最早的 waiting order（不限 slot/availability）
-        const [waitRows] = await conn.query(
-          "SELECT * FROM orders WHERE doctor_id = ? AND date = ? AND is_waitlist = 1 AND status = 'waiting' ORDER BY created_at ASC LIMIT 1 FOR UPDATE",
-          [order.doctor_id, order.date]
-        );
-        const next = waitRows[0];
-        if (next) {
-          // 将其设为 confirmed，并把 is_waitlist 取消，同时 booked++（恢复为原值）
-          await conn.query('UPDATE orders SET status = ?, is_waitlist = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?', ['confirmed', next.id]);
-          const restoredBooked = newBooked + 1;
-          await conn.query('UPDATE doctor_availability SET booked = ? WHERE doctor_id = ? AND date = ?', [restoredBooked, order.doctor_id, order.date]);
-          // 获取已提升的订单详情并发布 promoted 事件
-          const [promotedRows] = await conn.query('SELECT * FROM orders WHERE id = ?', [next.id]);
-          const promotedOrder = promotedRows[0];
-          try { await mqPublisher.publishOrderEvent('promoted', promotedOrder); } catch (e) { console.warn('MQ publish failed', e.message); }
+          // 尝试提升候补队列：查找同医生同日期最早的 waiting order（不限 slot/availability）
+          const [waitRows] = await conn.query(
+            "SELECT * FROM orders WHERE doctor_id = ? AND date = ? AND is_waitlist = 1 AND status = 'waiting' ORDER BY created_at ASC LIMIT 1 FOR UPDATE",
+            [order.doctor_id, order.date]
+          );
+          
+          // 修复：检查 waitRows 是否存在且有数据
+          if (waitRows && waitRows.length > 0) {
+            const next = waitRows[0];
+            // 将其设为 confirmed，并把 is_waitlist 取消，同时 booked++（恢复为原值）
+            await conn.query(
+              'UPDATE orders SET status = ?, is_waitlist = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+              ['confirmed', next.id]
+            );
+            
+            const restoredBooked = newBooked + 1;
+            await conn.query(
+              'UPDATE doctor_availability SET booked = ? WHERE doctor_id = ? AND date = ?', 
+              [restoredBooked, order.doctor_id, order.date]
+            );
+            
+            // 获取已提升的订单详情并发布 promoted 事件
+            const [promotedRows] = await conn.query('SELECT * FROM orders WHERE id = ?', [next.id]);
+            if (promotedRows && promotedRows.length > 0) {
+              const promotedOrder = promotedRows[0];
+              try { 
+                await mqPublisher.publishOrderEvent('promoted', promotedOrder); 
+              } catch (e) { 
+                console.warn('MQ publish failed', e.message); 
+              }
+            }
+          }
         }
       }
     }
 
-  await conn.commit();
-  // 发布取消事件
-  try { await mqPublisher.publishOrderEvent('cancelled', { orderId, cancelledBy }); } catch (e) { console.warn('MQ publish failed', e.message); }
+    await conn.commit();
+    // 发布取消事件
+    try { 
+      await mqPublisher.publishOrderEvent('cancelled', { orderId, cancelledBy }); 
+    } catch (e) { 
+      console.warn('MQ publish failed', e.message); 
+    }
 
-  return { success: true };
+    return { success: true };
   } catch (err) {
     await conn.rollback();
     throw err;
