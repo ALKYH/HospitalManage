@@ -396,7 +396,9 @@ describe('registrationService - 挂号服务测试', () => {
 
         // 验证候补提升
         const promoteCall = mockConnection.query.getCall(5);
-        expect(promoteCall.args[0]).to.include("UPDATE orders SET status = 'confirmed'");
+expect(promoteCall.args[0]).to.include('UPDATE orders SET status = ?');
+expect(promoteCall.args[1][0]).to.equal('confirmed'); // 验证参数
+expect(promoteCall.args[1][1]).to.equal(600); // 验证订单ID
 
         // 验证 MQ 事件发布
         expect(mqPublisher.publishOrderEvent.calledTwice).to.be.true;
