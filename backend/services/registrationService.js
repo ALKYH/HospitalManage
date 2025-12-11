@@ -146,6 +146,17 @@ async function cancelRegistration(orderId, cancelledBy) {
       ['cancelled', orderId]
     );
 
+    // 发布取消事件（放在这里确保一定会发布）
+    try { 
+      await mqPublisher.publishOrderEvent('cancelled', { 
+        orderId, 
+        cancelledBy,
+        oldStatus: order.status 
+      }); 
+    } catch (e) { 
+      console.warn('MQ publish cancelled event failed', e.message); 
+    }
+
     // 若之前是 confirmed，需要减少 day-level booked 并 promote day-level waiting queue
     if (order.status === 'confirmed') {
       // lock all availabilities for this doctor/date
@@ -192,7 +203,7 @@ async function cancelRegistration(orderId, cancelledBy) {
               try { 
                 await mqPublisher.publishOrderEvent('promoted', promotedOrder); 
               } catch (e) { 
-                console.warn('MQ publish failed', e.message); 
+                console.warn('MQ publish promoted event failed', e.message); 
               }
             }
           }
@@ -201,13 +212,6 @@ async function cancelRegistration(orderId, cancelledBy) {
     }
 
     await conn.commit();
-    // 发布取消事件
-    try { 
-      await mqPublisher.publishOrderEvent('cancelled', { orderId, cancelledBy }); 
-    } catch (e) { 
-      console.warn('MQ publish failed', e.message); 
-    }
-
     return { success: true };
   } catch (err) {
     await conn.rollback();
