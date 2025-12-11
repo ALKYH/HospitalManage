@@ -46,3 +46,28 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
+
+setImmediate(() => {
+  // 只在主进程中启动定时任务，避免在测试时启动
+  if (require.main === module) {
+    try {
+      const schedulerService = require('./services/schedulerService');
+      console.log('正在启动定时任务...');
+      schedulerService.startAllJobs();
+      console.log('定时任务启动完成');
+      
+      // 优雅关闭处理
+      process.on('SIGTERM', () => {
+        console.log('收到 SIGTERM 信号，停止定时任务...');
+        schedulerService.stopAllJobs();
+      });
+      
+      process.on('SIGINT', () => {
+        console.log('收到 SIGINT 信号，停止定时任务...');
+        schedulerService.stopAllJobs();
+      });
+    } catch (error) {
+      console.error('定时任务启动失败:', error.message);
+    }
+  }
+});

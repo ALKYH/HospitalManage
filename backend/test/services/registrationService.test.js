@@ -629,9 +629,8 @@ it('没有候补订单时取消确认订单只减少库存', async () => {
   expect(mqPublisher.publishOrderEvent.firstCall.args[0]).to.equal('cancelled');
 });
   });
-});
 
-describe('processExpiredAppointments - 自动处理过期预约', () => {
+  describe('processExpiredAppointments - 自动处理过期预约', () => {
   it('应自动确认已过期的候补订单', async () => {
     const mockConn = createMockConnection();
     stubs.push(sinon.stub(db, 'getConnection').resolves(mockConn));
@@ -689,3 +688,5 @@ describe('processExpiredAppointments - 自动处理过期预约', () => {
     expect(result.processedCount).to.equal(0); // 没有处理任何订单
   });
 });
+});
+

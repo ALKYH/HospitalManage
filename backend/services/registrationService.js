@@ -222,3 +222,4 @@ async function cancelRegistration(orderId, cancelledBy) {
 }
 
 module.exports = { createRegistration, cancelRegistration };
+
