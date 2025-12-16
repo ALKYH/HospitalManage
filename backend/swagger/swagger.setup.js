@@ -1,9 +1,18 @@
-const swaggerJsdoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
+let swaggerJsdoc;
+let swaggerUi;
+try {
+  swaggerJsdoc = require('swagger-jsdoc');
+  swaggerUi = require('swagger-ui-express');
+} catch (err) {
+  // 如果依赖未安装，降级为 noop 中间件，避免整个服务启动失败
+  console.warn('swagger dependencies missing, swagger UI disabled:', err && err.message);
+  swaggerJsdoc = null;
+  swaggerUi = null;
+}
 const options = require('./swagger.config');
 
-// 生成 Swagger 规范
-const specs = swaggerJsdoc(options);
+// 生成 Swagger 规范（如果可用）
+const specs = swaggerJsdoc ? swaggerJsdoc(options) : {};
 
 // 自定义 Swagger UI 配置
 const swaggerOptions = {
@@ -55,9 +64,16 @@ const swaggerOptions = {
   `
 };
 
-// Swagger 中间件
-const swaggerServe = swaggerUi.serve;
-const swaggerSetup = swaggerUi.setup(specs, swaggerOptions);
+// Swagger 中间件（如果未安装相关依赖，提供降级 no-op 实现）
+let swaggerServe;
+let swaggerSetup;
+if (swaggerUi) {
+  swaggerServe = swaggerUi.serve;
+  swaggerSetup = swaggerUi.setup(specs, swaggerOptions);
+} else {
+  swaggerServe = (req, res, next) => next();
+  swaggerSetup = (req, res, next) => (req, res, next)();
+}
 
 // 导出 Swagger JSON（可用于其他工具）
 const getSwaggerSpec = () => specs;

@@ -39,6 +39,8 @@ app.get('/docs', (req, res) => {
 app.use('/api/registration', registrationRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/auth', authRoutes);
+// 向后兼容：旧版客户端可能直接请求 /auth
+app.use('/auth', authRoutes);
 app.use('/api/patient', patientRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/mq', mqRoutes);
