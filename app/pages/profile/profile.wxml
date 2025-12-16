@@ -33,7 +33,7 @@
   </view>
 
   <view class="card-item" bindtap="onClick" data-action="个人信息">
-    <image class="item-icon" src="../../assets/register.png"></image>
+    <image class="item-icon" src="../../assets/user.png"></image>
     <text class="item-text">个人信息</text>
     <text class="arrow-item">></text>
   </view>

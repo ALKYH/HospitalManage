@@ -47,8 +47,8 @@
       {
         "pagePath": "pages/catalog/catalog",
         "text": "综合",
-        "iconPath": "assets/home.png",
-        "selectedIconPath": "assets/home_active.png"
+        "iconPath": "assets/CNode.png",
+        "selectedIconPath": "assets/CNodeHL.png"
       },
       {
         "pagePath": "pages/profile/profile",

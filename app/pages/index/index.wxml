@@ -29,7 +29,7 @@
         <block wx:for="{{banners}}" wx:key="*this">
           <swiper-item>
             <view class="swiper-item-wrap">
-              <image src="{{item}}" class="header-image" mode="aspectFill"></image>
+              <image src="../../assets/header1.jpg" class="header-image" mode="aspectFill"></image>
             </view>
           </swiper-item>
         </block>
@@ -41,7 +41,7 @@
         <view class="bigcard-bg-circle"></view>
         <view class="bigcard-left">
           <view class="icon-wrap">
-            <image class="card-icon" src="../../assets/register.png"></image>
+            <image class="card-icon" src="../../assets/type.png"></image>
           </view>
           <view class="text-group">
             <text class="bigcard-title">我要挂号</text>
@@ -76,21 +76,21 @@
 
       <view class="card ripple-effect" bindtap="onClick" data-action="智能分诊">
         <view class="icon-circle c-orange">
-          <image class="card-icon-small" src="../../assets/health.png"></image>
+          <image class="card-icon-small" src="../../assets/reply.png"></image>
         </view>
         <text class="card-text">智能分诊</text>
       </view>
 
       <view class="card ripple-effect" bindtap="onClick" data-action="医生登录">
         <view class="icon-circle c-cyan">
-          <image class="card-icon-small" src="../../assets/health.png"></image>
+          <image class="card-icon-small" src="../../assets/login.png"></image>
         </view>
         <text class="card-text">医生工作台</text>
       </view>
 
       <view class="card ripple-effect" bindtap="onClick" data-action="医生登录">
         <view class="icon-circle c-pink">
-           <image class="card-icon-small" src="../../assets/health.png"></image>
+           <image class="card-icon-small" src="../../assets/visit.png"></image>
         </view>
         <text class="card-text">科室简介</text>
       </view>

@@ -1,7 +1,7 @@
 <view class="ai-chat-container">
     
     <view class="chat-header">
-        <text class="header-title">🤖 AI 智能助手</text>
+        <text class="header-title"> ✨AI 智能分诊助手</text>
         <view class="header-btn" bindtap="clearChat">
             <text class="clear-icon">🧹</text>
             <text>清空</text>
@@ -17,7 +17,7 @@
         <view class="messages-list">
             <view wx:for="{{messages}}" wx:key="id" id="{{item.id}}" class="message-item {{item.type === 'user' ? 'user-msg' : 'bot-msg'}}">
                 
-                <image wx:if="{{item.type === 'bot'}}" class="avatar bot-avatar" src="../../assets/icon_ai_bot.png"></image>
+                <image wx:if="{{item.type === 'bot'}}" class="avatar bot-avatar" src="../../assets/CNodeHL.png"></image>
                 
                 <view class="msg-content-wrapper">
                     <view class="msg-bubble {{item.type === 'user' ? 'user-bubble' : 'bot-bubble'}}">
@@ -32,7 +32,7 @@
                     <text class="msg-time">{{item.timestamp}}</text>
                 </view>
 
-                <image wx:if="{{item.type === 'user'}}" class="avatar user-avatar" src="../../assets/icon_user_default.png"></image>
+                <image wx:if="{{item.type === 'user'}}" class="avatar user-avatar" src="../../assets/user.png"></image>
             </view>
             
             <view wx:if="{{isLoading}}" class="message-item bot-msg" id="last-message">

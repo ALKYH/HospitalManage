@@ -4,363 +4,605 @@
   <meta charset="utf-8" />
   <title>Hospital Admin</title>
   <style>
-    body{font-family:Arial; padding:20px; background:#f6f8fa}
-    .panel{border:1px solid #ddd;padding:12px;margin-bottom:12px;background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
-    input,select{padding:6px;margin:6px 0;border:1px solid #ccc;border-radius:4px}
-    button{background:#007bff;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer}
-    button:hover{opacity:.9}
-    .card-title{font-weight:bold;margin-bottom:8px}
-    .doctor-row{padding:6px;border-bottom:1px dashed #eee}
+    /* 仅保留少量自定义样式，主要样式交由 Pico.css */
+    .panel{padding:12px;margin-bottom:12px;border-radius:8px;border:1px solid var(--pico-muted-border-color)}
+    .tabBtn{opacity:1}
+    .tabBtn.active{opacity:.9}
+    .table-wrap{overflow:auto}
+    .toolbar{display:flex;gap:12px;align-items:center}
+    .toolbar .spacer{margin-left:auto}
+    /* 抽屉侧栏样式 */
+    .drawer-container{display:flex; gap:16px}
+    .drawer{position:fixed; top:16px; left:16px; max-height:calc(100vh); width:clamp(240px, 30vw, 360px); background:var(--pico-background-color);
+      border:1px solid var(--pico-muted-border-color); border-radius:12px; box-shadow: 0 10px 34px rgba(0,0,0,.12);
+      transform: translateX(-120%); transition: transform .25s ease; z-index: 20; padding:16px; overflow:auto}
+    .drawer[data-visible="true"]{transform: translateX(0)}
+    .drawer-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.25); -webkit-backdrop-filter: saturate(180%) blur(2px); backdrop-filter:saturate(180%) blur(2px);
+      opacity:0; pointer-events:none; transition: opacity .25s ease; z-index: 15}
+    .drawer-backdrop[data-visible="true"]{opacity:1; pointer-events:auto}
+    /* 大屏不强制常显，保持可抽屉收起/展开 */
+    @media (min-width: 1024px){
+      .drawer{top:24px; left:24px; height:calc(100vh - 48px); width:clamp(240px, 26vw, 420px)}
+      .drawer-container{margin-top:16px}
+    }
+    /* 登录页样式 */
+    .login-wrap{min-height:60vh; display:flex; align-items:center; justify-content:center}
+    .login-card{width:100%; max-width:360px; padding:20px; border:1px solid var(--pico-muted-border-color); border-radius:12px}
+    .login-title{margin:0 0 12px}
+    .login-actions{margin-top:8px}
+    /* 表格内动作按钮紧凑样式 */
+    .compact-actions{display:flex; gap:8px}
+    .compact-btn{padding:.35em .6em; font-size:.875em}
   </style>
+  <!-- （自动支持明暗色） -->
+  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2/css/pico.min.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 </head>
 <body>
-  <h1>管理后台</h1>
-  <div id="loginPanel" class="panel">
-    <h3>管理员登录</h3>
-    <input id="username" placeholder="username" />
-    <input id="password" placeholder="password" type="password" />
-    <button id="loginBtn">登录</button>
-    <div id="loginMsg"></div>
-  </div>
+  <div id="app">
+    <header class="container">
+      <nav>
+        <ul>
+          <li v-if="authed"><button aria-label="打开菜单" @click="sidebarOpen = !sidebarOpen">☰</button></li>
+          <li><strong>管理后台</strong></li>
+        </ul>
+        <ul>
+          <li><button class="secondary" @click="toggleTheme">切换主题</button></li>
+        </ul>
+      </nav>
+    </header>
 
-  <div id="app" style="display:none">
-    <!-- tabs -->
-    <div class="panel">
-      <div style="display:flex;gap:12px;align-items:center">
-        <button class="tabBtn" data-tab="depts">科室</button>
-        <button class="tabBtn" data-tab="doctors">医生</button>
-        <button class="tabBtn" data-tab="schedules">排班/号源</button>
-  <button class="tabBtn" data-tab="orders">订单</button>
-        <div style="margin-left:auto;color:#666">提示：先创建科室，再添加医生；排班时先选科室再选医生。</div>
-      </div>
-    </div>
-
-    <div id="tab-depts" class="panel tabPanel">
-      <h3>科室管理</h3>
-      <div style="margin-bottom:8px">
-        <small>科室列表（表格） — 可以删除已有科室。删除将会删除与之直接关联的数据，请谨慎操作。</small>
-      </div>
-      <table id="deptsTable" border="1" cellpadding="6" style="width:100%;border-collapse:collapse;background:#fff">
-        <thead><tr><th>ID</th><th>名称</th><th>父科室</th><th>Code</th><th>操作</th></tr></thead>
-        <tbody></tbody>
-      </table>
-
-      <div style="margin-top:10px">
-        <div><label>科室名</label><br/><input id="deptName" placeholder="科室名" /></div>
-        <div><label>Code（可选）</label><br/><input id="deptCode" placeholder="Code (可选)" /></div>
-        <div><label>父科室（可选）</label><br/><select id="deptParent"><option value="">无</option></select></div>
-        <div style="margin-top:8px"><button id="createDept">创建科室</button></div>
-      </div>
-    </div>
-
-    <div id="tab-doctors" class="panel tabPanel" style="display:none">
-      <h3>医生管理</h3>
-      <div><small>医生按科室分组，添加医生时请选择其所属科室。表格支持删除医生。</small></div>
-      <table id="doctorsTable" border="1" cellpadding="6" style="width:100%;border-collapse:collapse;background:#fff;margin-top:8px">
-        <thead><tr><th>ID</th><th>姓名</th><th>职称</th><th>科室</th><th>联系方式</th><th>操作</th></tr></thead>
-        <tbody></tbody>
-      </table>
-
-      <div style="margin-top:10px">
-        <div><label>姓名</label><br/><input id="doctorName" placeholder="医生名" /></div>
-        <div><label>职称</label><br/><input id="doctorTitle" placeholder="职称" /></div>
-        <div><label>联系方式</label><br/><input id="doctorContact" placeholder="联系方式" /></div>
-        <div><label>所属科室</label><br/><select id="doctorDept"></select></div>
-        <div style="margin-top:8px"><button id="createDoctor">创建医生</button></div>
-      </div>
-    </div>
-
-    <div id="tab-schedules" class="panel tabPanel" style="display:none">
-      <h3>排班与号源设置</h3>
-      <div><small>先选择科室，再选择医生；选择日期与时段后设置各号别的容量。</small></div>
-
-      <div style="display:flex;gap:12px;margin-top:8px">
-        <div style="flex:1">
-          <label>科室</label><br/>
-          <select id="schedDept"><option value="">请选择科室</option></select>
+    <div class="drawer-container container">
+      <!-- 抽屉侧栏 -->
+      <aside class="drawer" :data-visible="sidebarOpen ? 'true' : 'false'">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+          <strong>导航</strong>
+          <button class="secondary" aria-label="关闭" @click="sidebarOpen=false">✕</button>
         </div>
-        <div style="flex:1">
-          <label>医生（仅显示所选科室医生）</label><br/>
-          <select id="availDoctor"><option value="">请选择医生</option></select>
+        <nav>
+          <ul>
+            <li><a href="#" :aria-current="curTab==='depts' ? 'page' : null" @click.prevent="switchTab('depts')">科室</a></li>
+            <li><a href="#" :aria-current="curTab==='doctors' ? 'page' : null" @click.prevent="switchTab('doctors')">医生</a></li>
+            <li><a href="#" :aria-current="curTab==='schedules' ? 'page' : null" @click.prevent="switchTab('schedules')">排班/号源</a></li>
+            <li><a href="#" :aria-current="curTab==='orders' ? 'page' : null" @click.prevent="switchTab('orders')">订单</a></li>
+          </ul>
+          <ul>
+            <li><button class="secondary" @click="logout">退出登录</button></li>
+          </ul>
+        </nav>
+      </aside>
+      <!-- 背景遮罩（小屏时可点击关闭抽屉） -->
+      <div class="drawer-backdrop" :data-visible="sidebarOpen ? 'true' : 'false'" @click="sidebarOpen=false"></div>
+
+      <main style="flex:1">
+    <!-- 登录面板（竖直常见布局） -->
+    <section v-if="!authed" class="login-wrap container">
+      <article class="login-card">
+        <h3 class="login-title">管理员登录</h3>
+        <label>用户名
+          <input v-model.trim="login.username" placeholder="请输入用户名" />
+        </label>
+        <label>密码
+          <input v-model.trim="login.password" placeholder="请输入密码" type="password" />
+        </label>
+        <div class="login-actions">
+          <button style="width:100%" @click="doLogin" :aria-busy="login.loading ? 'true' : 'false'" :disabled="login.loading">{{ login.loading? '登录中...' : '登录' }}</button>
         </div>
-        <div style="flex:1">
-          <label>日期</label><br/>
-          <input id="availDate" type="date" />
+        <small style="color:#c00">{{ login.msg }}</small>
+      </article>
+    </section>
+
+    <!-- 主界面 -->
+    <div v-else>
+      <!-- 顶部提示 -->
+      <div class="panel">
+        <div class="toolbar">
+          <div style="color:var(--pico-muted-color)">提示：先创建科室，再添加医生；排班时先选科室再选医生。</div>
         </div>
       </div>
 
-      <div style="margin-top:8px">
-        <label>选择时段（可多选）</label><br/>
-        <label><input type="checkbox" class="slotChk" value="8-10" /> 8:00-10:00</label>
-        <label><input type="checkbox" class="slotChk" value="10-12" /> 10:00-12:00</label>
-        <label><input type="checkbox" class="slotChk" value="14-16" /> 14:00-16:00</label>
-        <label><input type="checkbox" class="slotChk" value="16-18" /> 16:00-18:00</label>
-        <div><small>提示：如果需要自定义时段请在后台 API 中手动创建（当前界面提供常见时段选择）。</small></div>
+      <!-- 科室管理 -->
+      <div v-show="curTab==='depts'" class="panel">
+        <h3>科室管理</h3>
+        <!-- 子切换栏：创建 / 已有列表 -->
+        <div class="panel" style="margin-top:8px; padding:8px">
+          <div class="toolbar">
+            <button class="tabBtn" :class="{active:deptsSubTab==='create'}" @click="deptsSubTab='create'">创建科室</button>
+            <button class="tabBtn" :class="{active:deptsSubTab==='list'}" @click="deptsSubTab='list'">查看科室</button>
+            <div class="spacer"></div>
+          </div>
+        </div>
+
+        <!-- 已创建科室列表 -->
+        <div v-show="deptsSubTab==='list'">
+          <div style="margin-bottom:8px">
+            <small>科室列表（表格） — 可以删除已有科室。删除将会删除与之直接关联的数据，请谨慎操作。</small>
+          </div>
+          <div class="table-wrap">
+          <table class="striped">
+            <thead><tr><th>ID</th><th>名称</th><th>父科室</th><th>Code</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-for="d in depts" :key="d.id">
+                <td>{{ d.id }}</td>
+                <td>{{ d.name }}</td>
+                <td>{{ findDeptName(d.parent_id) }}</td>
+                <td>{{ d.code || '' }}</td>
+                <td><button @click="delDept(d.id)">删除</button></td>
+              </tr>
+              <tr v-if="depts.length===0"><td colspan="5" style="text-align:center;color:#888">暂无科室</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+
+        <!-- 创建科室表单 -->
+        <article v-show="deptsSubTab==='create'" style="margin-top:10px">
+          <div class="grid">
+            <div>
+              <label>科室名
+                <input v-model.trim="deptForm.name" placeholder="科室名" />
+              </label>
+            </div>
+            <div>
+              <label>Code（可选）
+                <input v-model.trim="deptForm.code" placeholder="Code (可选)" />
+              </label>
+            </div>
+            <div>
+              <label>父科室（可选）
+                <select v-model="deptForm.parent_id">
+                  <option value="">无</option>
+                  <option v-for="d in depts" :key="'p'+d.id" :value="d.id">{{ d.name }}</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <footer>
+            <button @click="createDept">创建科室</button>
+          </footer>
+        </article>
       </div>
 
-      <div style="margin-top:8px">
-        <h4>号源数量（按类型）</h4>
-        <div>普通：<input id="cap_normal" type="number" value="5" min="0" /></div>
-        <div>专家：<input id="cap_expert" type="number" value="2" min="0" /></div>
-        <div>特需：<input id="cap_vip" type="number" value="1" min="0" /></div>
-      </div>
-
-      <div style="margin-top:8px"><button id="saveAvailability">保存排班</button></div>
-
-      <div style="margin-top:16px">
-        <h4>已保存的排班（表格）</h4>
-        <table id="availTable" border="1" cellpadding="6" style="width:100%;border-collapse:collapse;background:#fff">
-          <thead><tr><th>ID</th><th>医生</th><th>科室</th><th>日期</th><th>时段</th><th>号源(类型:数量)</th><th>操作</th></tr></thead>
-          <tbody></tbody>
+      <!-- 医生管理 -->
+      <div v-show="curTab==='doctors'" class="panel">
+        <h3>医生管理</h3>
+        <!-- 子切换栏：创建 / 已有列表 -->
+        <div class="panel" style="margin-top:8px; padding:8px">
+          <div class="toolbar">
+            <button class="tabBtn" :class="{active:doctorsSubTab==='create'}" @click="doctorsSubTab='create'">创建医生</button>
+            <button class="tabBtn" :class="{active:doctorsSubTab==='list'}" @click="doctorsSubTab='list'">查看医生</button>
+            <div class="spacer"></div>
+          </div>
+        </div>
+        <div><small>医生按科室分组，添加医生时请选择其所属科室。表格支持删除医生。</small></div>
+        <div class="table-wrap">
+        <table class="striped" style="margin-top:8px">
+          <thead><tr><th>ID</th><th>姓名</th><th>职称</th><th>科室</th><th>联系方式</th><th>操作</th></tr></thead>
+          <tbody>
+              <tr v-for="d in doctors" :key="d.id" v-if="doctorsSubTab==='list'">
+              <td>{{ d.id }}</td>
+              <td>{{ d.name }}</td>
+              <td>{{ d.title || '' }}</td>
+              <td>{{ findDeptName(d.department_id) }}</td>
+              <td>{{ d.contact || '' }}</td>
+              <td>
+                <div class="compact-actions">
+                  <button class="compact-btn" @click="setDoctorPwd(d.id)">设置密码</button>
+                  <button class="compact-btn" @click="delDoctor(d.id)">删除</button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="doctors.length===0"><td colspan="6" style="text-align:center;color:#888">暂无医生</td></tr>
+          </tbody>
         </table>
-      </div>
-    </div>
-    <div id="tab-orders" class="panel tabPanel" style="display:none">
-      <h3>订单管理</h3>
-      <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
-        <div>医生: <select id="ordersDoctor"><option value="">全部</option></select></div>
-        <div>日期: <input id="ordersDate" type="date" /></div>
-        <div>状态: <select id="ordersStatus"><option value="">全部</option><option value="pending">pending</option><option value="confirmed">confirmed</option><option value="waiting">waiting</option><option value="cancelled">cancelled</option><option value="completed">completed</option></select></div>
-        <div><button id="refreshOrders">刷新</button></div>
+        </div>
+          <article v-show="doctorsSubTab==='create'" style="margin-top:10px">
+            <div class="grid">
+              <div>
+                <label>姓名
+                  <input v-model.trim="doctorForm.name" placeholder="医生名" />
+                </label>
+              </div>
+              <div>
+                <label>职称
+                  <input v-model.trim="doctorForm.title" placeholder="职称" />
+                </label>
+              </div>
+              <div>
+                <label>联系方式
+                  <input v-model.trim="doctorForm.contact" placeholder="联系方式" />
+                </label>
+              </div>
+              <div>
+                <label>所属科室
+                  <select v-model="doctorForm.department_id">
+                    <option v-for="d in depts" :key="'d'+d.id" :value="d.id">{{ d.name }}</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+            <footer>
+              <button @click="createDoctor">创建医生</button>
+            </footer>
+          </article>
+        </div>
       </div>
 
-      <table id="ordersTable" border="1" cellpadding="6" style="width:100%;border-collapse:collapse;background:#fff;margin-top:8px">
-        <thead><tr><th>ID</th><th>账户</th><th>医生</th><th>科室</th><th>日期</th><th>时段</th><th>状态</th><th>候补</th><th>支付</th><th>操作</th></tr></thead>
-        <tbody></tbody>
-      </table>
+      <!-- 排班与号源 -->
+      <div v-show="curTab==='schedules'" class="panel">
+        <h3>排班与号源设置</h3>
+        <div><small>先选择科室，再选择医生；选择日期与时段后设置各号别的容量。</small></div>
+
+        <!-- 子切换栏 -->
+        <div class="panel" style="margin-top:8px; padding:8px">
+          <div class="toolbar">
+            <button class="tabBtn" :class="{active:schedSubTab==='schedule'}" @click="schedSubTab='schedule'">排班</button>
+            <button class="tabBtn" :class="{active:schedSubTab==='sources'}" @click="schedSubTab='sources'">号源</button>
+            <div class="spacer"></div>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top:8px" v-show="schedSubTab==='schedule'">
+          <div>
+            <label>科室
+              <select v-model="sched.deptId" @change="onSchedDeptChange">
+                <option value="">请选择科室</option>
+                <option v-for="d in depts" :key="'s'+d.id" :value="String(d.id)">{{ d.name }}</option>
+              </select>
+            </label>
+          </div>
+          <div>
+            <label>医生（仅显示所选科室医生）
+              <select v-model="sched.doctorId">
+                <option value="">请选择医生</option>
+                <option v-for="d in filteredDoctors" :key="'fd'+d.id" :value="String(d.id)">{{ d.name }}</option>
+              </select>
+            </label>
+          </div>
+          <div>
+            <label>日期
+              <input v-model="sched.date" type="date" />
+            </label>
+          </div>
+        </div>
+
+        <div v-show="schedSubTab==='schedule'" style="margin-top:8px">
+          <label>选择时段（可多选）</label><br/>
+          <label><input type="checkbox" value="8-10" v-model="sched.slots" /> 8:00-10:00</label>
+          <label><input type="checkbox" value="10-12" v-model="sched.slots" /> 10:00-12:00</label>
+          <label><input type="checkbox" value="14-16" v-model="sched.slots" /> 14:00-16:00</label>
+          <label><input type="checkbox" value="16-18" v-model="sched.slots" /> 16:00-18:00</label>
+          <div><small>提示：如果需要自定义时段请在后台 API 中手动创建（当前界面提供常见时段选择）。</small></div>
+        </div>
+
+        <div v-show="schedSubTab==='schedule'" style="margin-top:8px">
+          <h4>号源数量（按类型）</h4>
+          <div class="grid">
+            <label>普通
+              <input type="number" min="0" v-model.number="sched.cap.normal" />
+            </label>
+            <label>专家
+              <input type="number" min="0" v-model.number="sched.cap.expert" />
+            </label>
+            <label>特需
+              <input type="number" min="0" v-model.number="sched.cap.vip" />
+            </label>
+          </div>
+        </div>
+
+        <div v-show="schedSubTab==='schedule'" style="margin-top:8px"><button @click="saveAvailability">保存排班</button></div>
+
+        <div v-show="schedSubTab==='sources'" style="margin-top:16px">
+          <h4>已保存的号源（表格）</h4>
+          <div class="table-wrap">
+          <table class="striped">
+            <thead><tr><th>ID</th><th>医生</th><th>科室</th><th>日期</th><th>时段</th><th>号源(类型:数量)</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-for="r in availList" :key="r.id">
+                <td>{{ r.id }}</td>
+                <td>{{ findDoctorName(r.doctor_id) }}</td>
+                <td>{{ findDeptName(findDoctorDeptId(r.doctor_id)) }}</td>
+                <td>{{ r.date || '' }}</td>
+                <td>{{ r.slot || '' }}</td>
+                <td>{{ renderTypes(r) }}</td>
+                <td><button @click="delAvailability(r.id)">删除</button></td>
+              </tr>
+              <tr v-if="availList.length===0"><td colspan="7" style="text-align:center;color:#888">暂无号源</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 订单管理 -->
+      <div v-show="curTab==='orders'" class="panel">
+        <h3>订单管理</h3>
+        <div class="grid" style="margin-bottom:8px">
+          <label>医生
+            <select v-model="orders.filterDoctorId">
+              <option value="">全部</option>
+              <option v-for="d in doctors" :key="'od'+d.id" :value="String(d.id)">{{ d.name }}</option>
+            </select>
+          </label>
+          <label>日期
+            <input v-model="orders.filterDate" type="date" />
+          </label>
+          <label>状态
+            <select v-model="orders.filterStatus">
+              <option value="">全部</option>
+              <option value="pending">pending</option>
+              <option value="confirmed">confirmed</option>
+              <option value="waiting">waiting</option>
+              <option value="cancelled">cancelled</option>
+              <option value="completed">completed</option>
+            </select>
+          </label>
+          <div style="display:flex;align-items:end"><button @click="fetchOrders">刷新</button></div>
+        </div>
+
+        <div class="table-wrap">
+        <table class="striped" style="margin-top:8px">
+          <thead><tr><th>ID</th><th>账户</th><th>医生</th><th>科室</th><th>日期</th><th>时段</th><th>状态</th><th>候补</th><th>支付</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr v-for="o in orders.list" :key="o.id">
+              <td>{{ o.id }}</td>
+              <td>{{ o.account_id }}</td>
+              <td>{{ o.doctor_name || o.doctor_id }}</td>
+              <td>{{ o.department_name || '' }}</td>
+              <td>{{ o.date }}</td>
+              <td>{{ o.slot }}</td>
+              <td>{{ o.status }}</td>
+              <td>{{ o.is_waitlist ? ('pos:'+(((o.wait_position||0)+1))+'/'+(o.wait_total||0)) : '' }}</td>
+              <td>{{ o.payment_amount || '' }}</td>
+              <td><button @click="cancelOrder(o.id)">取消</button></td>
+            </tr>
+            <tr v-if="orders.list.length===0"><td colspan="10" style="text-align:center;color:#888">暂无订单</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      </main>
     </div>
   </div>
 
   <script>
-    const api = async (path, opts={})=>{
-      opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
-      const token = localStorage.getItem('admin_token');
-      if(token) opts.headers['Authorization'] = 'Bearer '+token;
-      if(opts.body && typeof opts.body !== 'string') opts.body = JSON.stringify(opts.body);
-      const res = await fetch(path, opts);
-      if (res.status === 401) {
-        // token expired or unauthorized: clear token and show login
-        localStorage.removeItem('admin_token');
-        document.getElementById('loginPanel').style.display='block';
-        document.getElementById('app').style.display='none';
-        alert('登录已过期，请重新登录');
-        return { success: false, message: 'Unauthorized', status: 401 };
-      }
-      try { return await res.json(); } catch(e) { return { success:false, message:'invalid json' }; }
-    };
+    const { createApp, ref, reactive, computed, onMounted } = Vue;
 
-    // tabs wiring
-    function setupTabs(){
-      document.querySelectorAll('.tabBtn').forEach(b=>{
-        b.addEventListener('click', ()=>{
-          document.querySelectorAll('.tabPanel').forEach(p=>p.style.display='none');
-          document.querySelectorAll('.tabBtn').forEach(tb=>tb.style.opacity='1');
-          const t = b.dataset.tab;
-          document.getElementById('tab-'+t).style.display='block';
-          b.style.opacity = '.9';
-            // if orders tab opened, refresh orders
-            if (t === 'orders') loadOrders();
+    createApp({
+      setup(){
+        const authed = ref(!!localStorage.getItem('admin_token'));
+        const curTab = ref('depts');
+        const sidebarOpen = ref(false);
+
+        const login = reactive({ username:'', password:'', loading:false, msg:'' });
+
+        const depts = ref([]);
+        const doctors = ref([]);
+
+        const deptForm = reactive({ name:'', code:'', parent_id:'' });
+        const doctorForm = reactive({ name:'', title:'', contact:'', department_id:'' });
+
+        const sched = reactive({
+          deptId:'',
+          doctorId:'',
+          date:'',
+          slots:[],
+          cap:{ normal:5, expert:2, vip:1 }
         });
-      });
-    }
+        const availList = ref([]);
+        const schedSubTab = ref('schedule');
+        const deptsSubTab = ref('list');
 
-    document.getElementById('loginBtn').onclick = async ()=>{
-      const u=document.getElementById('username').value, p=document.getElementById('password').value;
-      const res = await api('/auth/login',{method:'POST', body:{ username:u, password:p }});
-      if(res && res.success){ localStorage.setItem('admin_token', res.token || (res.data && res.data.token)); document.getElementById('loginPanel').style.display='none'; document.getElementById('app').style.display='block'; setupTabs(); document.querySelector('.tabBtn[data-tab="depts"]').click(); await loadAll(); }
-      else document.getElementById('loginMsg').innerText = res.message || '登录失败';
-    };
+        const orders = reactive({ filterDoctorId:'', filterDate:'', filterStatus:'', list:[] });
+          const doctorsSubTab = ref('list');
 
-    // global caches
-    let deptsCache = [];
-    let doctorsCache = [];
+        const filteredDoctors = computed(()=>{
+          if(!sched.deptId) return doctors.value;
+          return doctors.value.filter(d=> String(d.department_id) === String(sched.deptId));
+        });
 
-    async function loadAll(){
-      await loadDepts();
-      await loadDoctors();
-      await loadAvailabilities();
-    }
+        const api = async (path, opts={})=>{
+          opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
+          const token = localStorage.getItem('admin_token');
+          if(token) opts.headers['Authorization'] = 'Bearer '+token;
+          if(opts.body && typeof opts.body !== 'string') opts.body = JSON.stringify(opts.body);
+          const res = await fetch(path, opts);
+          if(res.status === 401){
+            localStorage.removeItem('admin_token');
+            authed.value = false;
+            alert('登录已过期，请重新登录');
+            return { success:false, message:'Unauthorized', status:401 };
+          }
+          try{ return await res.json(); } catch(e){ return { success:false, message:'invalid json' }; }
+        };
 
-    // departments
-    async function loadDepts(){
-      const res = await api('/api/admin/departments');
-      deptsCache = res.success ? res.data : [];
-      // fill table
-      const tbody = document.querySelector('#deptsTable tbody'); tbody.innerHTML='';
-      deptsCache.forEach(d=>{
-        const tr = document.createElement('tr');
-        const parent = deptsCache.find(x=>x.id==d.parent_id);
-        tr.innerHTML = `<td>${d.id}</td><td>${escapeHtml(d.name)}</td><td>${parent?escapeHtml(parent.name):''}</td><td>${escapeHtml(d.code||'')}</td><td><button data-id="${d.id}" class="delDept">删除</button></td>`;
-        tbody.appendChild(tr);
-      });
-      // selects
-      const psel = document.getElementById('deptParent'); psel.innerHTML='<option value="">无</option>';
-      const docDept = document.getElementById('doctorDept'); docDept.innerHTML='';
-      const schedDept = document.getElementById('schedDept'); schedDept.innerHTML='<option value="">请选择科室</option>';
-      deptsCache.forEach(d=>{ const o=document.createElement('option'); o.value=d.id; o.innerText=d.name; psel.appendChild(o); const o2=o.cloneNode(true); docDept.appendChild(o2); const o3=o.cloneNode(true); schedDept.appendChild(o3); });
+        const switchTab = async (t)=>{
+          curTab.value = t;
+          if(t==='orders') await fetchOrders();
+          if(t==='schedules' && schedSubTab.value==='sources') await fetchAvailabilitiesForCurrent();
+        };
 
-      // attach delete handlers
-      document.querySelectorAll('.delDept').forEach(btn=>btn.addEventListener('click', async ()=>{
-        const id = btn.dataset.id; if(!confirm('确认删除科室 ID='+id+' ?')) return;
-        const r = await api('/api/admin/departments/'+id,{method:'DELETE'});
-        if(r && r.success) await loadDepts(); else alert('删除失败: '+(r.message||JSON.stringify(r)));
-      }));
-    }
+        const logout = ()=>{
+          localStorage.removeItem('admin_token');
+          authed.value = false;
+          sidebarOpen.value = false;
+          // 清理工作区状态
+          depts.value = [];
+          doctors.value = [];
+          availList.value = [];
+        };
 
-    document.getElementById('createDept').onclick = async ()=>{
-      const name = document.getElementById('deptName').value.trim(); const code = document.getElementById('deptCode').value.trim(); const parent_id = document.getElementById('deptParent').value||null;
-      if(!name){ alert('请输入科室名'); return; }
-      await api('/api/admin/departments',{method:'POST', body:{ name, code, parent_id }});
-      document.getElementById('deptName').value=''; document.getElementById('deptCode').value=''; document.getElementById('deptParent').value='';
-      await loadDepts();
-    };
+        // 主题切换（持久化）
+        const applyTheme = (t)=>{ document.documentElement.setAttribute('data-theme', t); };
+        const toggleTheme = ()=>{
+          const current = document.documentElement.getAttribute('data-theme') || 'light';
+          const next = current === 'light' ? 'dark' : 'light';
+          applyTheme(next);
+          localStorage.setItem('theme', next);
+        };
 
-    // doctors
-    async function loadDoctors(){
-      const res = await api('/api/admin/doctors');
-      doctorsCache = res.success ? res.data : [];
-      const tbody = document.querySelector('#doctorsTable tbody'); tbody.innerHTML='';
-      doctorsCache.forEach(d=>{
-        const dept = deptsCache.find(x=>x.id==d.department_id);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${d.id}</td><td>${escapeHtml(d.name)}</td><td>${escapeHtml(d.title||'')}</td><td>${dept?escapeHtml(dept.name):''}</td><td>${escapeHtml(d.contact||'')}</td><td><button data-id="${d.id}" class="setPwd">设置密码</button> <button data-id="${d.id}" class="delDoctor">删除</button></td>`;
-        tbody.appendChild(tr);
-      });
+        const doLogin = async ()=>{
+          login.loading = true; login.msg='';
+          const res = await api('/auth/login', { method:'POST', body:{ username:login.username, password:login.password } });
+          login.loading = false;
+          if(res && res.success){
+            const token = res.token || (res.data && res.data.token);
+            if(token) localStorage.setItem('admin_token', token);
+            authed.value = true;
+            curTab.value = 'depts';
+            await loadAll();
+          }else{
+            login.msg = (res && res.message) || '登录失败';
+          }
+        };
 
-      // fill doctor selectors
-      const availSel = document.getElementById('availDoctor'); availSel.innerHTML='<option value="">请选择医生</option>';
-      const docDept = document.getElementById('doctorDept'); if(docDept && docDept.options.length===0){ deptsCache.forEach(d=>{ const opt=document.createElement('option'); opt.value=d.id; opt.innerText=d.name; docDept.appendChild(opt); }); }
-      doctorsCache.forEach(d=>{ const opt=document.createElement('option'); opt.value=d.id; opt.innerText=d.name; availSel.appendChild(opt); });
+        const loadAll = async ()=>{
+          await loadDepts();
+          await loadDoctors();
+          await fetchAvailabilitiesForCurrent();
+        };
 
-  // also populate ordersDoctor selector
-  const ordersDoctorSel = document.getElementById('ordersDoctor'); if(ordersDoctorSel){ ordersDoctorSel.innerHTML = '<option value="">全部</option>'; doctorsCache.forEach(d=>{ const o=document.createElement('option'); o.value=d.id; o.innerText=d.name; ordersDoctorSel.appendChild(o); }); }
+        const loadDepts = async ()=>{
+          const res = await api('/api/admin/departments');
+          depts.value = res && res.success ? (res.data||[]) : [];
+          // 如果当前选择的父科室不存在，重置
+          if(deptForm.parent_id && !depts.value.find(d=>String(d.id)===String(deptForm.parent_id))){ deptForm.parent_id=''; }
+        };
 
-      // set password handlers
-      document.querySelectorAll('.setPwd').forEach(btn=>btn.addEventListener('click', async ()=>{
-        const id = btn.dataset.id;
-        const pwd = prompt('为医生 ID='+id+' 设置新密码（明文）：');
-        if(!pwd) return alert('已取消或密码为空');
-        const username = prompt('可选：设定登录用户名（留空将使用默认 doctor'+id+'）');
-        const body = { password: pwd };
-        if(username) body.username = username;
-        const r = await api('/api/admin/doctors/'+id+'/set-password',{method:'POST', body});
-        if(r && r.success) { alert('设置成功'); await loadDoctors(); } else alert('设置失败: '+(r && r.message) || JSON.stringify(r));
-      }));
+        const createDept = async ()=>{
+          if(!deptForm.name){ alert('请输入科室名'); return; }
+          await api('/api/admin/departments',{ method:'POST', body:{ name:deptForm.name, code:deptForm.code, parent_id:deptForm.parent_id||null }});
+          deptForm.name=''; deptForm.code=''; deptForm.parent_id='';
+          await loadDepts();
+        };
 
-      // delete handlers
-      document.querySelectorAll('.delDoctor').forEach(btn=>btn.addEventListener('click', async ()=>{
-        const id = btn.dataset.id; if(!confirm('确认删除医生 ID='+id+' ?')) return;
-        const r = await api('/api/admin/doctors/'+id,{method:'DELETE'});
-        if(r && r.success) await loadDoctors(); else alert('删除失败: '+(r.message||JSON.stringify(r)));
-      }));
-    }
+        const delDept = async (id)=>{
+          if(!confirm('确认删除科室 ID='+id+' ?')) return;
+          const r = await api('/api/admin/departments/'+id, { method:'DELETE' });
+          if(r && r.success) await loadDepts(); else alert('删除失败: '+(r.message||JSON.stringify(r)));
+        };
 
-    document.getElementById('createDoctor').onclick = async ()=>{
-      const name=document.getElementById('doctorName').value.trim(); const title=document.getElementById('doctorTitle').value.trim(); const contact=document.getElementById('doctorContact').value.trim(); const department_id=document.getElementById('doctorDept').value||null;
-      if(!name){ alert('请输入医生姓名'); return; }
-      await api('/api/admin/doctors',{method:'POST', body:{ name, title, contact, department_id }});
-      document.getElementById('doctorName').value=''; document.getElementById('doctorTitle').value=''; document.getElementById('doctorContact').value='';
-      await loadDoctors();
-    };
+        const loadDoctors = async ()=>{
+          const res = await api('/api/admin/doctors');
+          doctors.value = res && res.success ? (res.data||[]) : [];
+          // 调整与科室相关的选择框
+          if(doctorForm.department_id && !depts.value.find(d=>String(d.id)===String(doctorForm.department_id))){ doctorForm.department_id=''; }
+        };
 
-    // schedules / availability
-    async function loadAvailabilities(doctorId){
-      // if doctorId provided, request per-doctor endpoint, otherwise list all
-      const url = doctorId ? `/api/admin/availability/${doctorId}` : '/api/admin/availability';
-      const res = await api(url);
-      const tbody = document.querySelector('#availTable tbody'); tbody.innerHTML='';
-      if(!(res && res.success)) return;
-      const rows = res.data;
-      rows.forEach(r=>{
-        const doc = doctorsCache.find(d=>d.id==r.doctor_id);
-        const dept = doc ? deptsCache.find(x=>x.id==doc.department_id) : null;
-        const types = r.extra && r.extra.capacity_types ? Object.entries(r.extra.capacity_types).map(([k,v])=>`${k}:${v}`).join(', ') : '';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${r.id}</td><td>${doc?escapeHtml(doc.name):''}</td><td>${dept?escapeHtml(dept.name):''}</td><td>${escapeHtml(r.date||'')}</td><td>${escapeHtml(r.slot||'')}</td><td>${escapeHtml(types)}</td><td><button data-id="${r.id}" class="delAvail">删除</button></td>`;
-        tbody.appendChild(tr);
-      });
+        const createDoctor = async ()=>{
+          if(!doctorForm.name){ alert('请输入医生姓名'); return; }
+          await api('/api/admin/doctors',{ method:'POST', body:{ name:doctorForm.name, title:doctorForm.title, contact:doctorForm.contact, department_id:doctorForm.department_id||null }});
+          doctorForm.name=''; doctorForm.title=''; doctorForm.contact='';
+          await loadDoctors();
+        };
 
-      document.querySelectorAll('.delAvail').forEach(btn=>btn.addEventListener('click', async ()=>{
-        const id = btn.dataset.id; if(!confirm('确认删除该排班 ID='+id+' ?')) return;
-        const r = await api('/api/admin/availability/'+id,{method:'DELETE'});
-        if(r && r.success) {
-          // refresh current doctor view if any
-          const curDoc = document.getElementById('availDoctor').value;
-          await loadAvailabilities(curDoc || null);
-        } else alert('删除失败: '+(r.message||JSON.stringify(r)));
-      }));
-    }
+        const setDoctorPwd = async (id)=>{
+          const pwd = prompt('为医生 ID='+id+' 设置新密码（明文）：');
+          if(!pwd) return alert('已取消或密码为空');
+          const username = prompt('可选：设定登录用户名（留空将使用默认 doctor'+id+'）');
+          const body = { password: pwd };
+          if(username) body.username = username;
+          const r = await api('/api/admin/doctors/'+id+'/set-password',{ method:'POST', body });
+          if(r && r.success){ alert('设置成功'); await loadDoctors(); } else alert('设置失败: '+((r && r.message) || '未知错误'));
+        };
 
-    // orders
-    async function loadOrders(){
-      const doctorSel = document.getElementById('ordersDoctor');
-      const doctorId = doctorSel ? doctorSel.value : null;
-      const date = document.getElementById('ordersDate').value || null;
-      const status = document.getElementById('ordersStatus').value || null;
-      const params = [];
-      let q = '/api/admin/orders?';
-      if(doctorId) q += 'doctor_id='+encodeURIComponent(doctorId)+'&';
-      if(date) q += 'date='+encodeURIComponent(date)+'&';
-      if(status) q += 'status='+encodeURIComponent(status)+'&';
-      const res = await api(q);
-      const tbody = document.querySelector('#ordersTable tbody'); tbody.innerHTML='';
-      if(!(res && res.success)) return;
-      res.data.forEach(o=>{
-        const tr = document.createElement('tr');
-        const waitInfo = o.is_waitlist ? ('pos:'+((o.wait_position||0)+1)+'/'+(o.wait_total||0)) : '';
-        tr.innerHTML = `<td>${o.id}</td><td>${escapeHtml(o.account_id)}</td><td>${escapeHtml(o.doctor_name||o.doctor_id)}</td><td>${escapeHtml(o.department_name||'')}</td><td>${escapeHtml(o.date)}</td><td>${escapeHtml(o.slot)}</td><td>${escapeHtml(o.status)}</td><td>${escapeHtml(waitInfo)}</td><td>${escapeHtml(o.payment_amount||'')}</td><td><button data-id="${o.id}" class="adminCancel">取消</button></td>`;
-        tbody.appendChild(tr);
-      });
+        const delDoctor = async (id)=>{
+          if(!confirm('确认删除医生 ID='+id+' ?')) return;
+          const r = await api('/api/admin/doctors/'+id, { method:'DELETE' });
+          if(r && r.success) await loadDoctors(); else alert('删除失败: '+(r.message||JSON.stringify(r)));
+        };
 
-      document.querySelectorAll('.adminCancel').forEach(btn=>btn.addEventListener('click', async ()=>{
-        const id = btn.dataset.id; if(!confirm('确认取消订单 ID='+id+' ?')) return;
-        const r = await api('/api/registration/cancel',{method:'POST', body:{ order_id: id }});
-        if(r && r.success) { alert('已取消'); await loadOrders(); } else alert('取消失败: '+(r.message||JSON.stringify(r)));
-      }));
-    }
+        const onSchedDeptChange = ()=>{
+          // 切换科室时，清空当前医生选择，并刷新当前排班列表（不带 doctor 过滤）
+          sched.doctorId = '';
+          if(schedSubTab.value==='sources') fetchAvailabilitiesForCurrent();
+        };
 
-    document.getElementById('refreshOrders').addEventListener('click', ()=> loadOrders());
+        const fetchAvailabilities = async (doctorId)=>{
+          const url = doctorId ? `/api/admin/availability/${doctorId}` : '/api/admin/availability';
+          const res = await api(url);
+          availList.value = (res && res.success) ? (res.data||[]) : [];
+        };
 
-    // when schedDept changes, filter availDoctor options to that dept
-    document.getElementById('schedDept').addEventListener('change', ()=>{
-      const deptId = document.getElementById('schedDept').value;
-      const sel = document.getElementById('availDoctor'); sel.innerHTML = '<option value="">请选择医生</option>';
-      doctorsCache.filter(d=>!deptId || String(d.department_id)===String(deptId)).forEach(d=>{
-        const o=document.createElement('option'); o.value=d.id; o.innerText=d.name; sel.appendChild(o);
-      });
-      // clear availability table when changing dept
-      loadAvailabilities(null);
-    });
+        const fetchAvailabilitiesForCurrent = async ()=>{
+          if(sched.doctorId){ await fetchAvailabilities(sched.doctorId); }
+          else await fetchAvailabilities(null);
+        };
 
-    // when doctor selection changes, show that doctor's availabilities
-    document.getElementById('availDoctor').addEventListener('change', async ()=>{
-      const docId = document.getElementById('availDoctor').value;
-      await loadAvailabilities(docId || null);
-    });
+        const saveAvailability = async ()=>{
+          const doctor_id = sched.doctorId;
+          const date = sched.date;
+          const slots = sched.slots.slice();
+          if(!doctor_id || !date || slots.length===0){ alert('请选择科室/医生/日期/时段'); return; }
+          const capacity_types = { '普通': Number(sched.cap.normal||0), '专家': Number(sched.cap.expert||0), '特需': Number(sched.cap.vip||0) };
+          const capacity = Object.values(capacity_types).reduce((a,b)=>a+Number(b||0),0);
+          for(const slot of slots){
+            await api('/api/admin/availability',{ method:'POST', body:{ doctor_id: parseInt(doctor_id,10), date, slot, capacity, extra:{ capacity_types, booked_types: {} } }});
+          }
+          alert('排班已保存');
+          await fetchAvailabilitiesForCurrent();
+        };
 
-    document.getElementById('saveAvailability').onclick = async ()=>{
-      const doctor_id = document.getElementById('availDoctor').value;
-      const date = document.getElementById('availDate').value;
-      const slots = Array.from(document.querySelectorAll('.slotChk')).filter(c=>c.checked).map(c=>c.value);
-      if(!doctor_id || !date || slots.length===0){ alert('请选择科室/医生/日期/时段'); return; }
-      const capacity_types = { '普通': parseInt(document.getElementById('cap_normal').value||0,10), '专家': parseInt(document.getElementById('cap_expert').value||0,10), '特需': parseInt(document.getElementById('cap_vip').value||0,10) };
-      for(const slot of slots){
-        await api('/api/admin/availability',{method:'POST', body:{ doctor_id: parseInt(doctor_id,10), date, slot, capacity: Object.values(capacity_types).reduce((a,b)=>a+b,0), extra:{ capacity_types, booked_types: {} } }});
+        const delAvailability = async (id)=>{
+          if(!confirm('确认删除该排班 ID='+id+' ?')) return;
+          const r = await api('/api/admin/availability/'+id, { method:'DELETE' });
+          if(r && r.success){ await fetchAvailabilitiesForCurrent(); } else alert('删除失败: '+(r.message||JSON.stringify(r)));
+        };
+
+        const fetchOrders = async ()=>{
+          let q = '/api/admin/orders?';
+          if(orders.filterDoctorId) q += 'doctor_id='+encodeURIComponent(orders.filterDoctorId)+'&';
+          if(orders.filterDate) q += 'date='+encodeURIComponent(orders.filterDate)+'&';
+          if(orders.filterStatus) q += 'status='+encodeURIComponent(orders.filterStatus)+'&';
+          const res = await api(q);
+          orders.list = (res && res.success) ? (res.data||[]) : [];
+        };
+
+        const cancelOrder = async (id)=>{
+          if(!confirm('确认取消订单 ID='+id+' ?')) return;
+          const r = await api('/api/registration/cancel', { method:'POST', body:{ order_id: id } });
+          if(r && r.success){ alert('已取消'); await fetchOrders(); } else alert('取消失败: '+(r.message||JSON.stringify(r)));
+        };
+
+        const findDeptName = (id)=>{ const d = depts.value.find(x=>String(x.id)===String(id)); return d? d.name : ''; };
+        const findDoctorName = (id)=>{ const d = doctors.value.find(x=>String(x.id)===String(id)); return d? d.name : ''; };
+        const findDoctorDeptId = (doctorId)=>{ const d = doctors.value.find(x=>String(x.id)===String(doctorId)); return d? d.department_id : ''; };
+        const renderTypes = (r)=>{
+          const types = r && r.extra && r.extra.capacity_types ? r.extra.capacity_types : null;
+          if(!types) return '';
+          return Object.entries(types).map(([k,v])=>`${k}:${v}`).join(', ');
+        };
+
+        onMounted(async ()=>{
+          // 初始化主题
+          const savedTheme = localStorage.getItem('theme');
+          if(savedTheme) applyTheme(savedTheme);
+          else applyTheme(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          // 刷新进入默认收起侧边栏
+          sidebarOpen.value = false;
+          if(authed.value){
+            await loadAll();
+          }
+        });
+
+        return {
+          // state
+          authed, curTab, sidebarOpen, login,
+          depts, doctors, deptForm, doctorForm,
+          sched, availList, orders, schedSubTab,
+          filteredDoctors,
+          // methods
+          switchTab, doLogin, toggleTheme, logout,
+          loadDepts, createDept, delDept,
+          loadDoctors, createDoctor, setDoctorPwd, delDoctor,
+          onSchedDeptChange, fetchAvailabilitiesForCurrent, saveAvailability, delAvailability,
+          fetchOrders, cancelOrder,
+            findDeptName, findDoctorName, findDoctorDeptId, renderTypes, doctorsSubTab,
+          // tabs
+          deptsSubTab
+        };
       }
-      alert('排班已保存');
-      // refresh current doctor's availabilities
-      await loadAvailabilities(doctor_id);
-    };
-
-    // small helper
-    function escapeHtml(s){ if(s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    // initial load helpers
-    (async ()=>{
-      // if already logged in, show app
-      const token = localStorage.getItem('admin_token');
-      if(token){ document.getElementById('loginPanel').style.display='none'; document.getElementById('app').style.display='block'; setupTabs(); document.querySelector('.tabBtn[data-tab="depts"]').click(); await loadAll(); }
-    })();
+    }).mount('#app');
   </script>
 </body>
 </html>
