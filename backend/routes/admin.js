@@ -168,6 +168,12 @@ router.delete('/departments/:id', adminController.deleteDepartment);
  */
 router.get('/doctors', adminController.listDoctors);
 
+// Statistics
+router.get('/stats/registrations', adminController.registrationsStats);
+router.get('/stats/refund-rate', adminController.refundRate);
+router.get('/stats/schedule-calendar', adminController.scheduleCalendar);
+router.get('/departments/tree', adminController.departmentsTree);
+
 /**
  * @swagger
  * /api/admin/doctors:

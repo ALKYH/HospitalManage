@@ -259,4 +259,64 @@ module.exports = {
   listFees, setFee,
   listPendingDoctorReviews, approveDoctorProfile, rejectDoctorProfile,
   listLeaveRequests, setLeaveRequestStatus, createLeaveRequest
+  ,
+  // statistics
+  registrationsStats,
+  refundRate,
+  departmentsTree,
+  scheduleCalendar
 };
+
+// ------------------ Statistics implementations ------------------
+// registrationsStats: return counts per day for last `days` days
+async function registrationsStats(days = 30) {
+  const dbConfig = require('../config/default');
+  const cutoffSql = `SELECT DATE(created_at) as day, COUNT(1) as count FROM orders WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY) GROUP BY DATE(created_at) ORDER BY day ASC`;
+  const [rows] = await db.query(cutoffSql, [parseInt(days, 10) || 30]);
+  return rows;
+}
+
+// refundRate: compute cancelled / total over period (30 days default)
+async function refundRate(days = 30) {
+  const sql = `SELECT
+    SUM(CASE WHEN status = 'cancelled' OR status = 'refunded' THEN 1 ELSE 0 END) as cancelled,
+    COUNT(1) as total
+    FROM orders WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)`;
+  const [rows] = await db.query(sql, [parseInt(days, 10) || 30]);
+  const r = rows && rows[0] ? rows[0] : { cancelled: 0, total: 0 };
+  const rate = r.total ? (Number(r.cancelled) / Number(r.total)) : 0;
+  return { cancelled: Number(r.cancelled || 0), total: Number(r.total || 0), rate };
+}
+
+// departmentsTree: return hierarchical tree of departments
+async function departmentsTree() {
+  const [rows] = await db.query('SELECT id, name, code, parent_id FROM departments ORDER BY id');
+  const map = {};
+  rows.forEach(r => map[r.id] = Object.assign({}, r, { children: [] }));
+  const tree = [];
+  rows.forEach(r => {
+    if (r.parent_id && map[r.parent_id]) map[r.parent_id].children.push(map[r.id]);
+    else tree.push(map[r.id]);
+  });
+  return tree;
+}
+
+// scheduleCalendar: aggregated availability per date (for given month)
+async function scheduleCalendar(month) {
+  // month in format YYYY-MM, default current month
+  const m = month || (new Date()).toISOString().slice(0,7);
+  const start = m + '-01';
+  // compute first day next month
+  const parts = m.split('-');
+  const y = parseInt(parts[0],10); const mo = parseInt(parts[1],10);
+  const nextMonth = new Date(y, mo, 1).toISOString().slice(0,10);
+  const sql = `SELECT date, doctor_id, COUNT(1) as slots, SUM(capacity) as capacity FROM doctor_availability WHERE date >= ? AND date < ? GROUP BY date, doctor_id ORDER BY date`;
+  const [rows] = await db.query(sql, [start, nextMonth]);
+  // aggregate by date
+  const byDate = {};
+  rows.forEach(r => {
+    if (!byDate[r.date]) byDate[r.date] = [];
+    byDate[r.date].push({ doctor_id: r.doctor_id, slots: r.slots, capacity: Number(r.capacity || 0) });
+  });
+  return byDate;
+}

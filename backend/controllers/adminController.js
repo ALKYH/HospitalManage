@@ -178,6 +178,38 @@ exports.listAllTables = async (req, res) => {
   } catch (err) { console.error('listAllTables err', err); res.status(500).json({ success: false, message: err.message }); }
 };
 
+// ----- Statistics endpoints -----
+exports.registrationsStats = async (req, res) => {
+  try {
+    const days = req.query.days || 30;
+    const rows = await adminService.registrationsStats(days);
+    res.json({ success: true, data: rows });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+exports.refundRate = async (req, res) => {
+  try {
+    const days = req.query.days || 30;
+    const obj = await adminService.refundRate(days);
+    res.json({ success: true, data: obj });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+exports.departmentsTree = async (req, res) => {
+  try {
+    const tree = await adminService.departmentsTree();
+    res.json({ success: true, data: tree });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+exports.scheduleCalendar = async (req, res) => {
+  try {
+    const month = req.query.month; // YYYY-MM
+    const data = await adminService.scheduleCalendar(month);
+    res.json({ success: true, data });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
 // Admin: list orders with basic joins
 exports.listOrders = async (req, res) => {
   try {

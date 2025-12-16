@@ -1,9 +1,30 @@
+:root{
+  --bg:#f5f7fa;
+  --panel:#ffffff;
+  --muted:#909399;
+  --primary:#409EFF;
+  --accent: linear-gradient(90deg,#7b61ff,#409EFF);
+  --glass: rgba(255,255,255,0.6);
+  --card-shadow: 0 8px 20px rgba(16,24,40,0.08);
+}
+
+:root.dark{
+  --bg:#0f1724;
+  --panel:#0b1220;
+  --muted:#98a0b3;
+  --primary:#60a5fa;
+  --accent: linear-gradient(90deg,#6b21a8,#2563eb);
+  --glass: rgba(255,255,255,0.03);
+  --card-shadow: 0 8px 30px rgba(2,6,23,0.6);
+}
+
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-  background-color: #f5f7fa;
+  background-color: var(--bg);
+  color: #111827;
 }
 
 #app {
@@ -16,24 +37,29 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #1890ff 0%, #36cfc9 100%);
+  background: var(--accent);
 }
 
 .login-card {
-  width: 400px;
-  border-radius: 8px;
+  width: 420px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.6));
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(6px);
 }
 
 .login-title {
   text-align: center;
-  margin-bottom: 24px;
-  color: #303133;
-  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--primary);
+  font-weight: 700;
+  letter-spacing: 0.6px;
 }
 
 /* 主布局样式 */
 .main-container {
   height: 100vh;
+  background: radial-gradient(1200px 400px at 10% 0%, rgba(64,158,255,0.06), transparent 10%), radial-gradient(800px 300px at 90% 100%, rgba(123,97,255,0.04), transparent 10%);
 }
 
 .aside-menu {
@@ -42,34 +68,66 @@ html, body {
 }
 
 .el-header {
-  background-color: #fff;
-  border-bottom: 1px solid #dcdfe6;
+  background: linear-gradient(90deg, rgba(255,255,255,0.6), rgba(255,255,255,0.3));
+  border-bottom: 1px solid rgba(0,0,0,0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
+  backdrop-filter: blur(6px);
 }
 
 .header-title {
   font-size: 18px;
-  font-weight: 600;
-  color: #303133;
+  font-weight: 700;
+  color: var(--primary);
 }
 
 .el-aside {
-  background-color: #fff;
-  border-right: 1px solid #dcdfe6;
+  background: var(--panel);
+  border-right: 1px solid rgba(0,0,0,0.04);
   transition: width 0.3s;
 }
 
 .el-main {
-  background-color: #f0f2f5;
-  padding: 20px;
+  background: transparent;
+  padding: 28px;
 }
 
 /* 面板通用样式 */
 .panel-card {
-  background: #fff;
-  border-radius: 4px;
+  background: linear-gradient(180deg,var(--panel), var(--glass));
+  border-radius: 10px;
   padding: 20px;
+  box-shadow: var(--card-shadow);
 }
+
+/* Fancy buttons */
+.el-button--primary {
+  background: var(--accent) !important;
+  border: none !important;
+  color: white;
+  box-shadow: 0 6px 18px rgba(64,158,255,0.18);
+}
+
+/* Calendar (course table) styles used by SchedulesPanel */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.calendar .day {
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent);
+  border-radius: 8px;
+  height: 90px;
+  padding: 8px;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.calendar .day:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(2,6,23,0.08); }
+.calendar .day .date { font-weight: 600; color: var(--primary); }
+.calendar .day.selected { background: linear-gradient(135deg, rgba(64,158,255,0.12), rgba(123,97,255,0.06)); box-shadow: 0 12px 30px rgba(64,158,255,0.12); }
+

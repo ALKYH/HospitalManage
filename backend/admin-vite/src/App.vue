@@ -60,6 +60,10 @@
           <el-icon><OfficeBuilding /></el-icon>
           <span>科室管理</span>
         </el-menu-item>
+        <el-menu-item index="dashboard">
+          <el-icon><Calendar /></el-icon>
+          <span>数据大屏</span>
+        </el-menu-item>
         <el-menu-item index="doctors">
           <el-icon><User /></el-icon>
           <span>医生管理</span>
@@ -95,6 +99,8 @@
           @create-dept="createDept"
           @delete-dept="delDept"
         />
+
+        <DashboardPanel v-if="curTab==='dashboard'" />
 
         <DoctorsPanel v-if="curTab==='doctors'"
           :doctors="doctors"
@@ -142,6 +148,7 @@ import DeptsPanel from './components/DeptsPanel.vue'
 import DoctorsPanel from './components/DoctorsPanel.vue'
 import SchedulesPanel from './components/SchedulesPanel.vue'
 import OrdersPanel from './components/OrdersPanel.vue'
+import DashboardPanel from './components/DashboardPanel.vue'
 
 // State
 const authed = ref(!!localStorage.getItem('admin_token'))
@@ -329,19 +336,31 @@ const fetchAvailabilitiesForCurrent = async () => {
 
 const saveAvailability = async () => {
   const doctor_id = sched.doctorId
-  const date = sched.date
-  const slots = sched.slots.slice()
-  if (!doctor_id || !date || slots.length === 0) { ElMessage.warning('请选择科室/医生/日期/时段'); return }
-  
   const capacity_types = { '普通': Number(sched.cap.normal || 0), '专家': Number(sched.cap.expert || 0), '特需': Number(sched.cap.vip || 0) }
   const capacity = Object.values(capacity_types).reduce((a, b) => a + Number(b || 0), 0)
-  
-  let successCount = 0
-  for (const slot of slots) {
-    const res = await api('/api/admin/availability', { method: 'POST', body: { doctor_id: parseInt(doctor_id, 10), date, slot, capacity, extra: { capacity_types, booked_types: {} } } })
-    if (res && res.success) successCount++
+
+  if (!doctor_id) { ElMessage.warning('请选择科室/医生'); return }
+
+  let perDay = sched.perDaySlots && typeof sched.perDaySlots === 'object' ? sched.perDaySlots : null
+
+  // fallback to older format: sched.date + sched.slots
+  if (!perDay) {
+    const dates = Array.isArray(sched.date) ? sched.date.slice() : (sched.date ? [sched.date] : [])
+    const slots = sched.slots ? (Array.isArray(sched.slots) ? sched.slots.slice() : []) : []
+    if (dates.length === 0 || slots.length === 0) { ElMessage.warning('请选择日期/时段'); return }
+    perDay = {}
+    for (const date of dates) perDay[date] = slots.slice()
   }
-  
+
+  let successCount = 0
+  for (const [date, slots] of Object.entries(perDay)) {
+    if (!Array.isArray(slots) || slots.length === 0) continue
+    for (const slot of slots) {
+      const res = await api('/api/admin/availability', { method: 'POST', body: { doctor_id: parseInt(doctor_id, 10), date, slot, capacity, extra: { capacity_types, booked_types: {} } } })
+      if (res && res.success) successCount++
+    }
+  }
+
   if (successCount > 0) {
     ElMessage.success(`成功保存 ${successCount} 个时段的排班`)
     await fetchAvailabilitiesForCurrent()

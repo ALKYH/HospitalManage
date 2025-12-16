@@ -12,6 +12,7 @@
     "@element-plus/icons-vue": "^2.3.2",
     "@picocss/pico": "^2.0.0",
     "element-plus": "^2.12.0",
+    "echarts": "^5.4.0",
     "vue": "^3.4.0"
   },
   "devDependencies": {

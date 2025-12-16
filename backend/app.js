@@ -48,8 +48,29 @@ app.use('/api/notify', notifyRoutes);
 app.use('/api/ai', aiRoutes);
 // Admin static UI
 // Switch to the new Vite-based admin panel (built files)
-app.use('/admin', express.static(path.join(__dirname, 'admin-vite', 'dist')));
-// app.use('/admin', express.static(path.join(__dirname, 'admin')));
+const fs = require('fs');
+const adminDistPath = path.join(__dirname, 'admin-vite', 'dist');
+if (fs.existsSync(adminDistPath)) {
+  app.use('/admin', express.static(adminDistPath));
+} else {
+  // 如果构建产物不存在，返回友好提示页面，告诉开发者如何构建 admin 前端
+  app.get('/admin', (req, res) => {
+    res.status(200).send(`
+      <html>
+        <head><meta charset="utf-8"><title>Admin UI 未构建</title></head>
+        <body style="font-family: Arial, Helvetica, sans-serif; padding:24px">
+          <h2>管理面板未构建</h2>
+          <p>未检测到 <code>backend/admin-vite/dist</code> 构建产物。</p>
+          <p>开发者可在项目根目录运行：</p>
+          <pre>cd backend/admin-vite
+npm install
+npm run build</pre>
+          <p>构建完成后，刷新此页面即可访问管理面板。</p>
+        </body>
+      </html>
+    `);
+  });
+}
 // Admin API
 app.use('/api/admin', adminRoutes);
 // Public routes (no auth)
