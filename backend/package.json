@@ -7,6 +7,8 @@
     "start": "node server.js",
     "ensure-db": "node scripts/ensure_db.js",
     "dev": "node scripts/ensure_db.js && nodemon server.js",
+    "build:admin": "npm --prefix admin-vite install && npm --prefix admin-vite run build",
+    "build": "npm run build:admin",
     "test": "mocha --recursive --timeout 5000 --exit",
     "test:watch": "mocha --recursive --watch",
     "test:ci": "npm run ensure-db && npm test"

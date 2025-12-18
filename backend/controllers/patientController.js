@@ -38,6 +38,12 @@ exports.submitProfile = async (req, res) => {
       return res.status(400).json({ success: false, message: '手机号需为11位数字' });
     }
 
+    // 可选：邮箱格式校验
+    const email = payload.email || (payload.extra && payload.extra.email) || null;
+    if (email && !/^\S+@\S+\.\S+$/.test(String(email))) {
+      return res.status(400).json({ success: false, message: '邮箱格式不正确' });
+    }
+
     // 严格匹配 staff 列表：三字段必须与同一条记录对应
     const verified = patientService.verifyAgainstStaffList({ employeeId, name, idNumber });
     if (!verified) {

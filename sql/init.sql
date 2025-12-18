@@ -17,6 +17,7 @@ CREATE TABLE profiles (
   id INT AUTO_INCREMENT PRIMARY KEY,
   account_id INT NOT NULL UNIQUE,
   display_name VARCHAR(100),
+  email VARCHAR(255) NULL,
   phone VARCHAR(30),
   gender ENUM('M','F'),
   birthday DATE NULL,

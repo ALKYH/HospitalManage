@@ -5,6 +5,7 @@ const staffList = require('../data/staffList.json');
 const FIELD_LIMITS = {
   display_name: 100,
   phone: 30,
+  email: 255,
   address: 255,
   idcard: 64
 };
@@ -45,7 +46,7 @@ async function saveProfile(accountId, payload) {
   // payload: { display_name, phone, gender, birthday, address, idcard, extra }
   // 先做长度校验并截断（避免 SQL Data too long）
   const safe = Object.assign({}, payload);
-  ['display_name', 'phone', 'address', 'idcard'].forEach(k => {
+  ['display_name', 'phone', 'email', 'address', 'idcard'].forEach(k => {
     if (k in safe && typeof safe[k] === 'string') {
       safe[k] = truncateIfNeeded(k, safe[k]);
     }
@@ -67,16 +68,16 @@ async function saveProfile(accountId, payload) {
     if (exists) {
       // update
       await db.query(
-        `UPDATE profiles SET display_name=?, phone=?, gender=?, birthday=?, address=?, idcard=?, extra=JSON_MERGE_PATCH(COALESCE(extra,'{}'), ?), updated_at=CURRENT_TIMESTAMP WHERE account_id = ?`,
-        [safe.display_name || null, safe.phone || null, safe.gender || null, safe.birthday || null, safe.address || null, safe.idcard || null, JSON.stringify(safe.extra || {}), accountId]
+        `UPDATE profiles SET display_name=?, email=?, phone=?, gender=?, birthday=?, address=?, idcard=?, extra=JSON_MERGE_PATCH(COALESCE(extra,'{}'), ?), updated_at=CURRENT_TIMESTAMP WHERE account_id = ?`,
+        [safe.display_name || null, safe.email || null, safe.phone || null, safe.gender || null, safe.birthday || null, safe.address || null, safe.idcard || null, JSON.stringify(safe.extra || {}), accountId]
       );
       const [rows] = await db.query('SELECT * FROM profiles WHERE account_id = ?', [accountId]);
       console.log('Profile updated for', accountId);
       return rows[0];
     } else {
       const [r] = await db.query(
-        'INSERT INTO profiles (account_id, display_name, phone, gender, birthday, address, idcard, extra) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [accountId, safe.display_name || null, safe.phone || null, safe.gender || null, safe.birthday || null, safe.address || null, safe.idcard || null, JSON.stringify(safe.extra || {})]
+        'INSERT INTO profiles (account_id, display_name, email, phone, gender, birthday, address, idcard, extra) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [accountId, safe.display_name || null, safe.email || null, safe.phone || null, safe.gender || null, safe.birthday || null, safe.address || null, safe.idcard || null, JSON.stringify(safe.extra || {})]
       );
       const [rows] = await db.query('SELECT * FROM profiles WHERE id = ?', [r.insertId]);
       console.log('Profile created for', accountId);

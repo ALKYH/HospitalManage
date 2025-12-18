@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  backend:
+    # 本地开发时把后端源代码挂载进容器，便于实时调试
+    volumes:
+      - ./backend:/usr/src/app:cached
+      # 保留容器内的 node_modules，避免宿主机 node_modules 覆盖
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+    # 使用镜像内的 nodemon（需要 Dockerfile 已安装 nodemon）
+    command: ["nodemon", "server.js"]

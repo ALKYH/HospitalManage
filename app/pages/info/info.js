@@ -8,6 +8,7 @@ Page({
     idNumber: '',
     idCard: '',
     phone: '',
+    email: '',
     history: '',
     hasProfile: false, // 是否已有档案
     editMode: false    // 是否处于编辑状态
@@ -29,6 +30,7 @@ Page({
             idCard: p.idcard || '',
             // 如果 phone 被存在 extra 中，也进行兼容读取
             phone: p.phone || (p.extra && p.extra.phone) || '',
+            email: p.email || (p.extra && p.extra.email) || '',
             gender: p.gender || '',
             history: (p.extra && p.extra.history) || '',
             role: (p.extra && p.extra.role) || this.data.role,
@@ -56,11 +58,12 @@ Page({
   onIDInput(e) { this.setData({ idNumber: e.detail.value }); },
   onIDCardInput(e) { this.setData({ idCard: e.detail.value }); },
   onTelInput(e) { this.setData({ phone: e.detail.value }); },
+  onEmailInput(e) { this.setData({ email: e.detail.value }); },
   onGenderChange(e) { this.setData({ gender: this.data.genderOptions[e.detail.value] }); },
   onHistoryInput(e) { this.setData({ history: e.detail.value }); },
 
   onSubmit() {
-    const { idNumber, idCard, gender, history, role, phone, name } = this.data;
+    const { idNumber, idCard, gender, history, role, phone, name, email } = this.data;
     if (!idNumber || !idCard || !gender || !phone || !name) {
       wx.showToast({ title: '请填写完整信息（学/工号、姓名、身份证、手机号等）', icon: 'none' });
       return;
@@ -68,6 +71,12 @@ Page({
     // 手机 11 位数字校验
     if (!/^\d{11}$/.test(String(phone))) {
       wx.showToast({ title: '手机号需为11位数字', icon: 'none' });
+      return;
+    }
+
+    // 邮箱格式校验（如填写）
+    if (email && !/^\S+@\S+\.\S+$/.test(String(email))) {
+      wx.showToast({ title: '邮箱格式不正确', icon: 'none' });
       return;
     }
 
@@ -81,9 +90,10 @@ Page({
       idcard: idCard || '',
       // phone 需要写顶层以便后续读取
       phone: phone || '',
+      email: email || '',
       gender,
       // 将更多自定义字段放入 extra（持久化 student/employee id 与历史记录、role）
-      extra: Object.assign({}, { history, role }, { employeeId: idNumber, phone })
+      extra: Object.assign({}, { history, role }, { employeeId: idNumber, phone, email })
     };
 
     wx.showLoading({ title: '保存中...' });

@@ -63,6 +63,12 @@
   </view>
 
   <view class="input-group">
+    <text class="label">✉️</text>
+    <input class="input" value="{{email}}" placeholder="请输入邮箱（选填）" bindinput="onEmailInput" />
+    <text class="input-label-text">邮箱</text>
+  </view>
+
+  <view class="input-group">
     <text class="label">🚻</text>
     <picker mode="selector" range="{{genderOptions}}" bindchange="onGenderChange">
       <view class="picker">{{gender || '请选择性别'}}</view>

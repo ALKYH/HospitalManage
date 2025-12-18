@@ -43,6 +43,35 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
 
+  redis:
+    image: redis:7
+    container_name: hospital-redis
+    ports:
+      - "6379:6379"
+
+  notification-service:
+    build:
+      context: ./backend/notification-service
+    container_name: hospital-notification
+    environment:
+      NODE_ENV: production
+      MQ_URL: amqp://guest:guest@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: 123456
+      DB_NAME: hospital
+      # SMTP 配置示例（请替换为实际值或在部署时注入 secrets）
+      SMTP_HOST: smtp.example.com
+      SMTP_PORT: 587
+      SMTP_USER: ''
+      SMTP_PASS: ''
+      SMTP_FROM: no-reply@example.com
+    depends_on:
+      - rabbitmq
+      - redis
+      - db
+
 volumes:
   mysql-data:
   rabbitmq-data:
