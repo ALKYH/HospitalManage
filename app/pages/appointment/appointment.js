@@ -12,7 +12,7 @@ Page({
     this.loadAppointments();
   },
 
-  // 处理单个订单的视图表现（颜色、状态文案等）
+  // 处理单个订单的视图表现
   processOrderView(item) {
     let statusText, statusClass, badgeBg, badgeColor;
     let isActionable = false; // 是否需要立即操作（去挂号）
@@ -23,6 +23,12 @@ Page({
       statusClass = 'expired';
       badgeBg = '#f5f7fa';
       badgeColor = '#909399';
+    } else if (item.status === 'confirmed' || item.status === 'completed') { 
+      // 修改这里：confirmed 状态也显示为已成功
+      statusText = '已成功';
+      statusClass = 'completed';
+      badgeBg = '#e1f3d8';
+      badgeColor = '#67c23a';
     } else if (item.available === true) {
       statusText = '号源释放';
       statusClass = 'available';
@@ -44,11 +50,100 @@ Page({
         badgeBg,
         badgeColor,
         isActionable,
-        // 格式化医生名字，如果太长可以截断等处理
         doctorName: item.doctor && item.doctor.name ? item.doctor.name : `医生#${item.doctor_id}`,
         deptName: item.doctor && item.doctor.department_name ? item.doctor.department_name : ''
       }
     };
+  },
+
+  // 核心逻辑：标记同天同医生/同科室的候补订单为已完成（已成功）
+  markSameDayOrdersAsCompleted(orders, doctorCache, deptMap) {
+    const processedOrders = [...orders];
+    
+    // 1. 先建立一个科室映射：医生ID -> 科室ID
+    const doctorDeptMap = {};
+    for (const [doctorId, doctorInfo] of Object.entries(doctorCache)) {
+      if (doctorInfo && doctorInfo.department_id) {
+        doctorDeptMap[doctorId] = doctorInfo.department_id;
+      }
+    }
+
+    // 2. 收集已完成订单的关键信息
+    const completedMap = {};
+    for (const order of processedOrders) {
+      // 修改这里：包括 confirmed 和 completed 状态
+      if (order.status !== 'completed' && order.status !== 'confirmed') continue;
+
+      const orderDate = String(order.date || '').slice(0,10);
+      if (!orderDate) continue;
+      
+      if (!completedMap[orderDate]) {
+        completedMap[orderDate] = { doctorIds: new Set(), deptIds: new Set() };
+      }
+
+      // 收集已完成订单的医生ID
+      if (order.doctor_id) {
+        completedMap[orderDate].doctorIds.add(order.doctor_id);
+      }
+
+      // 收集已完成订单的科室ID
+      let deptId = null;
+      // 优先级1：订单本身的科室ID
+      if (order.department_id) {
+        deptId = order.department_id;
+      }
+      // 优先级2：医生的科室ID
+      else if (order.doctor_id && doctorDeptMap[order.doctor_id]) {
+        deptId = doctorDeptMap[order.doctor_id];
+      }
+      // 优先级3：从doctor对象获取
+      else if (order.doctor && order.doctor.department_id) {
+        deptId = order.doctor.department_id;
+      }
+      
+      if (deptId) {
+        completedMap[orderDate].deptIds.add(deptId);
+      }
+    }
+
+    // 3. 遍历所有候补订单，标记同天同医生/同科室为已完成
+    for (const order of processedOrders) {
+      // 跳过已完成/已过期/已确认订单
+      if (order.status === 'completed' || order.status === 'expired' || order.status === 'confirmed') continue;
+
+      const orderDate = String(order.date || '').slice(0,10);
+      if (!orderDate || !completedMap[orderDate]) continue;
+
+      // 获取当前订单的医生ID
+      const currentDoctorId = order.doctor_id;
+      
+      // 获取当前订单的科室ID
+      let currentDeptId = null;
+      // 优先级1：订单本身的科室ID
+      if (order.department_id) {
+        currentDeptId = order.department_id;
+      }
+      // 优先级2：医生的科室ID（从缓存）
+      else if (currentDoctorId && doctorDeptMap[currentDoctorId]) {
+        currentDeptId = doctorDeptMap[currentDoctorId];
+      }
+      // 优先级3：从doctor对象获取
+      else if (order.doctor && order.doctor.department_id) {
+        currentDeptId = order.doctor.department_id;
+      }
+
+      // 核心规则：同天 且（同医生 OR 同科室）→ 标记为已完成
+      const isSameDoctor = completedMap[orderDate].doctorIds.has(currentDoctorId);
+      const isSameDept = currentDeptId && completedMap[orderDate].deptIds.has(currentDeptId);
+      
+      if (isSameDoctor || isSameDept) {
+        order.status = 'completed';
+        order.autoCompleted = true;
+        console.log(`自动标记订单${order.id}为已完成：同天(${orderDate})，医生匹配:${isSameDoctor}，科室匹配:${isSameDept}`);
+      }
+    }
+
+    return processedOrders;
   },
 
   async loadAppointments() {
@@ -58,7 +153,6 @@ Page({
       return;
     }
     
-    // 保持 loading 为 true 一小段时间，防止闪烁，或者如果正在下拉刷新
     this.setData({ message: '' });
 
     try {
@@ -68,29 +162,42 @@ Page({
         return;
       }
       
-      const orders = (res.data || []).filter(o => o.status === 'waiting');
-
-      // 准备辅助数据
+      let orders = (res.data || []);
+      
+      // ============ 核心修改：过滤掉候补订单 ============
+      orders = orders.filter(order => {
+        // 排除候补订单
+        const isWaitlist = order.is_waitlist === 1 || order.status === 'waiting';
+        // 只保留已确认、已完成、已取消的预约
+        const isValidStatus = ['confirmed', 'completed', 'cancelled'].includes(order.status);
+        return !isWaitlist && isValidStatus;
+      });
+      
+      // ============ 如果没有数据，直接返回 ============
+      if (orders.length === 0) {
+        this.setData({ 
+          ordersList: [], 
+          loading: false,
+          message: '暂无预约记录'
+        });
+        return;
+      }
+      
       const today = new Date();
       const todayStr = today.toISOString().slice(0,10);
       const pairs = {};
       const doctorIds = new Set();
       
+      // 收集所有医生ID（包括已完成订单）
       for (const o of orders) {
-        const orderDate = String(o.date || '').slice(0,10);
-        if (!orderDate) continue;
-        const key = `${o.doctor_id}::${orderDate}`;
-        pairs[key] = pairs[key] || { doctor_id: o.doctor_id, date: orderDate, orders: [] };
-        pairs[key].orders.push(o);
         if (o.doctor_id) doctorIds.add(o.doctor_id);
       }
 
-      // 获取医生和排班信息
-      const availCache = {};
+      // 获取医生和科室信息
       const doctorCache = {};
       let deptMap = {};
 
-      // 并行请求医生信息
+      // 1. 加载所有医生信息
       await Promise.all(Array.from(doctorIds).map(async id => {
         try {
           const r = await request({ url: `/api/doctor/${id}`, method: 'GET' });
@@ -98,7 +205,7 @@ Page({
         } catch (e) {}
       }));
 
-      // 获取科室信息
+      // 2. 加载科室信息
       try {
         const depRes = await request({ url: '/api/departments', method: 'GET' });
         if (depRes && depRes.success) {
@@ -113,7 +220,24 @@ Page({
         }
       } catch (e) {}
 
-      // 获取可用性
+      // 核心步骤：标记同天同医生/同科室的候补订单为已完成
+      orders = this.markSameDayOrdersAsCompleted(orders, doctorCache, deptMap);
+
+      // 整理活跃订单（未完成/未过期）用于号源检查
+      // 修改这里：confirmed 状态不再被视为活跃订单，因为已成功
+      const activeOrders = orders.filter(o => o.status !== 'completed' && o.status !== 'expired' && o.status !== 'confirmed');
+      
+      // 构建医生+日期配对（仅活跃订单）
+      for (const o of activeOrders) {
+        const orderDate = String(o.date || '').slice(0,10);
+        if (!orderDate) continue;
+        const key = `${o.doctor_id}::${orderDate}`;
+        pairs[key] = pairs[key] || { doctor_id: o.doctor_id, date: orderDate, orders: [] };
+        pairs[key].orders.push(o);
+      }
+
+      // 获取号源可用性（仅对活跃订单）
+      const availCache = {};
       await Promise.all(Object.keys(pairs).map(async k => {
         const p = pairs[k];
         try {
@@ -125,6 +249,7 @@ Page({
       const list = [];
       const slotOrder = { '8-10': 1, '10-12': 2, '14-16': 3, '16-18': 4 };
 
+      // 处理活跃订单（检查号源）
       for (const key of Object.keys(pairs)) {
         const p = pairs[key];
         const availRows = availCache[key] || [];
@@ -133,39 +258,64 @@ Page({
           const available = slotRow ? (parseInt(slotRow.capacity||0,10) - parseInt(slotRow.booked||0,10) > 0) : false;
           
           const orderDate = String(o.date || '').slice(0,10);
-          let status = 'reserved';
-          if (orderDate < todayStr) {
-            status = 'expired';
-          } else {
-            if ((o.status === 'waiting' || o.is_waitlist) && available) {
-              status = 'available';
+          let status = o.status;
+          
+          // 仅处理未被自动完成的订单
+          if (status !== 'completed' && status !== 'confirmed') {
+            if (orderDate < todayStr) {
+              status = 'expired';
             } else {
-              status = 'reserved'; // 此时 logical status 是 reserved (waiting)
+              // 注意：这里不会再有 confirmed 状态，因为已经过滤了
+              if ((o.status === 'waiting' || o.is_waitlist) && available) {
+                status = 'available';
+              } else {
+                status = 'reserved';
+              }
             }
           }
           
+          // 补充医生和科室信息
           const doc = doctorCache[o.doctor_id] || { id: o.doctor_id, name: `医生#${o.doctor_id}` };
           if (doc && doc.department_id && deptMap && deptMap[doc.department_id]) {
             doc.department_name = deptMap[doc.department_id];
           }
 
-          // 构造基础 Item
           const rawItem = Object.assign({}, o, {
             doctor: doc,
             available,
-            status, // 这里的 status 是逻辑状态
-            sort_key: `${available ? '0' : '1'}::${orderDate}::${slotOrder[o.slot] || 99}` // 有号源的排前面
+            status,
+            sort_key: this.getSortKey(status, orderDate, o.slot, slotOrder)
           });
 
-          // 处理为视图 Item
           list.push(this.processOrderView(rawItem));
         }
+      }
+
+      // 处理已完成/已过期/已确认订单
+      const completedOrExpiredOrConfirmedOrders = orders.filter(o => 
+        o.status === 'completed' || o.status === 'expired' || o.status === 'confirmed'
+      );
+      for (const o of completedOrExpiredOrConfirmedOrders) {
+        const orderDate = String(o.date || '').slice(0,10);
+        const doc = doctorCache[o.doctor_id] || { id: o.doctor_id, name: `医生#${o.doctor_id}` };
+        
+        if (doc && doc.department_id && deptMap && deptMap[doc.department_id]) {
+          doc.department_name = deptMap[doc.department_id];
+        }
+
+        const rawItem = Object.assign({}, o, {
+          doctor: doc,
+          available: false,
+          status: o.status,
+          sort_key: this.getSortKey(o.status, orderDate, o.slot, slotOrder)
+        });
+
+        list.push(this.processOrderView(rawItem));
       }
 
       // 排序
       list.sort((a,b) => a.sort_key < b.sort_key ? -1 : (a.sort_key > b.sort_key ? 1 : 0));
 
-      // 模拟一点点延迟让骨架屏动画展示完整（提升体验），实际项目中可视情况移除
       setTimeout(() => {
         this.setData({ ordersList: list, loading: false });
       }, 500);
@@ -176,28 +326,66 @@ Page({
     }
   },
 
+  // 辅助方法：生成排序键
+  getSortKey(status, orderDate, slot, slotOrder) {
+    let statusPriority = '3'; // 已过期
+    if (status === 'available') statusPriority = '0'; // 号源释放
+    else if (status === 'reserved' || status === 'waiting') statusPriority = '1'; // 候补中
+    else if (status === 'completed' || status === 'confirmed') statusPriority = '2'; // 已成功
+    
+    return `${statusPriority}::${orderDate}::${slotOrder[slot] || 99}`;
+  },
+
+  // 挂号按钮点击事件
   onGoRegister(e) {
     const orderId = e.currentTarget.dataset.orderid;
     const order = (this.data.ordersList || []).find(x => String(x.id) === String(orderId));
     if (!order) return;
     
-    // 增加触觉反馈
+    // 仅拦截非可操作状态的订单（已完成/已过期/无号源）
+    if (!order.view.isActionable) {
+      // 修改这里：confirmed 状态也提示已成功
+      if (order.status === 'completed' || order.status === 'confirmed') {
+        wx.showToast({ 
+          title: '该订单已成功挂号', 
+          icon: 'none' 
+        });
+      } else {
+        wx.showToast({ 
+          title: '当前无可用号源', 
+          icon: 'none' 
+        });
+      }
+      return;
+    }
+    
     wx.vibrateShort({ type: 'medium' });
-
-    wx.setStorageSync('selectedDoctor', { id: order.doctor_id, name: order.doctor && order.doctor.name ? order.doctor.name : `医生#${order.doctor_id}` });
+    wx.setStorageSync('selectedDoctor', { id: order.doctor_id, name: order.view.doctorName });
     wx.setStorageSync('selectedDate', String(order.date).slice(0,10));
     wx.setStorageSync('selectedSlot', order.slot);
     wx.navigateTo({ url: '/pages/register/register' });
   },
 
+  // 取消订单事件
   onCancel(e) {
     const orderId = e.currentTarget.dataset.orderid;
     if (!orderId) return;
 
-    // 交互优化：二次确认
+    const order = (this.data.ordersList || []).find(x => String(x.id) === String(orderId));
+    if (!order) return;
+
+    // 仅拦截已完成/已确认订单
+    if (order.status === 'completed' || order.status === 'confirmed') {
+      wx.showToast({ 
+        title: '已成功的订单无法取消', 
+        icon: 'none' 
+      });
+      return;
+    }
+
     wx.showModal({
-      title: '取消候补',
-      content: '确定要放弃当前的候补位置吗？',
+      title: '取消预约',
+      content: '确定要取消这个预约吗？',
       confirmColor: '#ff4d4f',
       success: async (res) => {
         if (res.confirm) {
@@ -208,7 +396,6 @@ Page({
   },
 
   async doCancel(orderId) {
-    // 乐观更新 UI
     const originalList = this.data.ordersList;
     const list = originalList.filter(x => String(x.id) !== String(orderId));
     this.setData({ ordersList: list });
@@ -217,8 +404,8 @@ Page({
       const res = await request({ url: '/api/registration/cancel', method: 'POST', data: { order_id: orderId } });
       if (res && res.success) {
         wx.showToast({ title: '已取消', icon: 'success' });
+        setTimeout(() => this.loadAppointments(), 800);
       } else {
-        // 失败回滚
         this.setData({ ordersList: originalList });
         wx.showToast({ title: (res && res.message) ? res.message : '取消失败', icon: 'none' });
       }
@@ -226,6 +413,16 @@ Page({
       console.error('cancel err', err);
       this.setData({ ordersList: originalList });
       wx.showToast({ title: '网络错误', icon: 'none' });
+    }
+  },
+
+  // 辅助方法：获取单个医生信息
+  async getDoctorInfo(doctorId) {
+    try {
+      const r = await request({ url: `/api/doctor/${doctorId}`, method: 'GET' });
+      return r && r.success ? r.data : null;
+    } catch (e) {
+      return null;
     }
   }
 })
