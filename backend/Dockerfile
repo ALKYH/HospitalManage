@@ -16,6 +16,9 @@ RUN npm install
 # 拷贝项目文件
 COPY . .
 
+# 构建前端静态资源 (新增)
+RUN cd admin-vite && npm install && npm run build
+
 # 开发环境建议安装 nodemon 热更新
 RUN npm install -g nodemon
 

@@ -1,0 +1,75 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  background-color: #f5f7fa;
+}
+
+#app {
+  height: 100%;
+}
+
+/* 登录页背景 */
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #1890ff 0%, #36cfc9 100%);
+}
+
+.login-card {
+  width: 400px;
+  border-radius: 8px;
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #303133;
+  font-weight: 600;
+}
+
+/* 主布局样式 */
+.main-container {
+  height: 100vh;
+}
+
+.aside-menu {
+  height: 100%;
+  border-right: none;
+}
+
+.el-header {
+  background-color: #fff;
+  border-bottom: 1px solid #dcdfe6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.el-aside {
+  background-color: #fff;
+  border-right: 1px solid #dcdfe6;
+  transition: width 0.3s;
+}
+
+.el-main {
+  background-color: #f0f2f5;
+  padding: 20px;
+}
+
+/* 面板通用样式 */
+.panel-card {
+  background: #fff;
+  border-radius: 4px;
+  padding: 20px;
+}

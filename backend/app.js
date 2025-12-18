@@ -28,7 +28,9 @@ app.use('/api/mq', mqRoutes);
 app.use('/api/notify', notifyRoutes);
 app.use('/api/ai', aiRoutes);
 // Admin static UI
-app.use('/admin', express.static(path.join(__dirname, 'admin')));
+// Switch to the new Vite-based admin panel (built files)
+app.use('/admin', express.static(path.join(__dirname, 'admin-vite', 'dist')));
+// app.use('/admin', express.static(path.join(__dirname, 'admin')));
 // Admin API
 app.use('/api/admin', adminRoutes);
 // Public routes (no auth)
