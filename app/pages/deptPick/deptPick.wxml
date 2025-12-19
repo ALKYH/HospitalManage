@@ -18,6 +18,15 @@
 
     <!-- 右侧子科室 -->
     <scroll-view class="right-menu" scroll-y>
+      <!-- 如果没有子科室，允许直接选择该科室 -->
+      <view 
+        wx:if="{{filteredDepartments[selectedDept] && (!filteredDepartments[selectedDept].children || filteredDepartments[selectedDept].children.length === 0)}}"
+        class="submenu-item" 
+        bindtap="onSelectParent" 
+        data-dept="{{filteredDepartments[selectedDept]}}">
+        {{filteredDepartments[selectedDept].name}}
+      </view>
+
       <block wx:for="{{filteredDepartments[selectedDept] && filteredDepartments[selectedDept].children}}" wx:key="id">
         <view 
           class="submenu-item" 

@@ -29,6 +29,15 @@ Page({
     this.setData({ selectedDept: index });
   },
 
+  onSelectParent(e) {
+    const dept = e.currentTarget.dataset.dept;
+    // 选中父级科室本身
+    const selected = { id: dept.id, name: dept.name, parent: null };
+    wx.setStorageSync('selectedDepartment', selected);
+    wx.showToast({ title: `已选择：${dept.name}`, icon: 'success' });
+    setTimeout(() => wx.navigateBack(), 600);
+  },
+
   onSelectSub(e) {
     const sub = e.currentTarget.dataset.sub;
     const deptObj = this.data.filteredDepartments[this.data.selectedDept];

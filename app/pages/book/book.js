@@ -4,8 +4,9 @@ const { request } = require('../../utils/request');
 Page({
   data: {
     departments: [],
-    deptOptions: [],
-    deptIndex: 0,
+    // deptOptions: [], // Removed
+    // deptIndex: 0,    // Removed
+    selectedDept: { name: '' }, // Added
     doctors: [],
     doctorIndex: 0,
     doctorsNames: [],
@@ -20,52 +21,43 @@ Page({
     slotsLabels: ['上午 08:00-10:00','上午 10:00-12:00','下午 14:00-16:00','下午 16:00-18:00'],
     minDate: (new Date()).toISOString().slice(0,10),
     message: '',
-    isLoading: true, // 新增：控制骨架屏
-    currentStep: 1, // 新增：控制当前焦点步骤 (1:科室, 2:医生, 3:日期/时段)
+    isLoading: false, // Changed default to false as we don't load depts on load
+    currentStep: 1, 
   },
 
   onLoad() {
-    this.loadDepartments();
+    // this.loadDepartments(); // Removed
   },
 
-  async loadDepartments() {
-    this.setData({ isLoading: true });
-    try {
-      const res = await request({ url: '/api/departments', method: 'GET' });
-      if (res && res.success) {
-        const list = [];
-        res.data.forEach(p => {
-          // push parent
-          list.push({ id: p.id, name: p.name });
-          if (p.children && p.children.length) {
-            p.children.forEach(c => list.push({ id: c.id, name: `${p.name} / ${c.name}` }));
-          }
+  onShow() {
+    const selectedDept = wx.getStorageSync('selectedDepartment');
+    if (selectedDept) {
+      if (typeof selectedDept === 'object' && selectedDept.id) {
+        this.setData({
+          selectedDept: selectedDept,
+          currentStep: 2,
+          doctors: [], 
+          doctorIndex: 0,
+          doctorsNames: []
         });
-        this.setData({ 
-            departments: list, 
-            deptOptions: list.map(d => d.name),
-            isLoading: false // 数据加载完成
-        });
+        wx.removeStorageSync('selectedDepartment');
+        this.loadDoctorsForDept(selectedDept.id);
       } else {
-        this.setData({ isLoading: false, message: '无法加载科室数据' });
+         wx.removeStorageSync('selectedDepartment');
       }
-    } catch (e) {
-      console.error('loadDepartments err', e);
-      this.setData({ isLoading: false, message: '网络错误，请稍后重试' });
     }
   },
 
-  async onDeptChange(e) {
-    const idx = e.detail.value;
-    // 震动反馈
-    wx.vibrateShort({ type: 'light' });
-    this.setData({ deptIndex: idx, doctors: [], doctorIndex: 0, currentStep: 2 });
-    const dep = this.data.departments[idx];
-    if (dep && dep.id) {
+  goToDepartment() {
+    wx.navigateTo({
+      url: '/pages/deptPick/deptPick',
+    });
+  },
+
+  async loadDoctorsForDept(deptId) {
       try {
-        // 增加 loading 提示
         wx.showLoading({ title: '加载医生中', mask: true });
-        const r = await request({ url: `/api/doctor?department_id=${dep.id}`, method: 'GET' });
+        const r = await request({ url: `/api/doctor?department_id=${deptId}`, method: 'GET' });
         wx.hideLoading();
         if (r && r.success) {
           const docs = r.data || [];
@@ -78,8 +70,10 @@ Page({
           console.error('load doctors err', err);
           this.setData({ doctors: [], doctorsNames: [], message: '加载医生失败' }); 
       }
-    }
   },
+
+  // Removed loadDepartments and onDeptChange
+
 
   onDoctorChange(e) {
     wx.vibrateShort({ type: 'light' });

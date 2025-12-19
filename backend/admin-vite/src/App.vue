@@ -56,6 +56,10 @@
         <div style="height: 60px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #f0f0f0;">
           <h3 style="margin:0; color:#409EFF;">Hospital Admin</h3>
         </div>
+        <el-menu-item index="dashboard">
+          <el-icon><DataLine /></el-icon>
+          <span>数据统计</span>
+        </el-menu-item>
         <el-menu-item index="depts">
           <el-icon><OfficeBuilding /></el-icon>
           <span>科室管理</span>
@@ -87,6 +91,8 @@
       </el-header>
 
       <el-main>
+        <StatisticsPanel v-if="curTab==='dashboard'" />
+
         <DeptsPanel v-if="curTab==='depts'"
           :depts="depts"
           :dept-form="deptForm"
@@ -142,10 +148,13 @@ import DeptsPanel from './components/DeptsPanel.vue'
 import DoctorsPanel from './components/DoctorsPanel.vue'
 import SchedulesPanel from './components/SchedulesPanel.vue'
 import OrdersPanel from './components/OrdersPanel.vue'
+import StatisticsPanel from './components/StatisticsPanel.vue'
+import { api } from './utils/api'
+import { DataLine } from '@element-plus/icons-vue'
 
 // State
 const authed = ref(!!localStorage.getItem('admin_token'))
-const curTab = ref('depts')
+const curTab = ref('dashboard')
 const login = reactive({ username: '', password: '', loading: false, msg: '' })
 const depts = ref([])
 const doctors = ref([])
@@ -161,6 +170,7 @@ const doctorsSubTab = ref('list')
 // Computed
 const pageTitle = computed(() => {
   const map = {
+    dashboard: '数据统计',
     depts: '科室管理',
     doctors: '医生管理',
     schedules: '排班与号源设置',
@@ -173,27 +183,6 @@ const filteredDoctors = computed(() => {
   if (!sched.deptId) return doctors.value
   return doctors.value.filter(d => String(d.department_id) === String(sched.deptId))
 })
-
-// API Helper
-const api = async (path, opts = {}) => {
-  opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {})
-  const token = localStorage.getItem('admin_token')
-  if (token) opts.headers['Authorization'] = 'Bearer ' + token
-  if (opts.body && typeof opts.body !== 'string') opts.body = JSON.stringify(opts.body)
-  
-  try {
-    const res = await fetch(path, opts)
-    if (res.status === 401) {
-      localStorage.removeItem('admin_token')
-      ElMessage.error('登录已过期，请重新登录')
-      authed.value = false
-      return { success: false, message: 'Unauthorized', status: 401 }
-    }
-    return await res.json()
-  } catch (e) {
-    return { success: false, message: 'Network error or invalid json' }
-  }
-}
 
 // Methods
 const toggleTheme = () => {

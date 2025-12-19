@@ -57,4 +57,7 @@ router.get('/accounts/:id', adminController.getAccount);
 router.put('/accounts/:id', adminController.updateAccount);
 router.delete('/accounts/:id', adminController.deleteAccount);
 
+// Statistics
+router.get('/statistics', adminController.getStatistics);
+
 module.exports = router;

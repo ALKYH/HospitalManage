@@ -238,3 +238,11 @@ exports.deleteAccount = async (req, res) => {
     res.json({ success: true });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
+
+exports.getStatistics = async (req, res) => {
+  try {
+    const data = await adminService.getStatistics();
+    res.json({ success: true, data });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+

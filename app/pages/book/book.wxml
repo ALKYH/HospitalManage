@@ -19,9 +19,10 @@
       <text class="label">选择科室</text>
       <text class="tip-text" wx:if="{{currentStep === 1}}">点击选择</text>
     </view>
-    <picker mode="selector" range="{{deptOptions}}" value="{{deptIndex}}" bindchange="onDeptChange" disabled="{{currentStep !== 1}}">
-      <view class="picker">{{deptOptions[deptIndex] || '点击此处选择科室'}}</view>
-    </picker>
+    <view class="picker-group">
+        <view class="picker-display selected-label">{{selectedDept.name || '请选择科室'}}</view>
+        <button class="action-btn" bindtap="goToDepartment">立即选择科室</button>
+    </view>
   </view>
 
   <view class="field-card {{currentStep === 2 ? 'active' : ''}}" data-step="2" bindtap="onFieldTap">

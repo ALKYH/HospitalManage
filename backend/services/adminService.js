@@ -248,6 +248,110 @@ async function createLeaveRequest(doctor_id, from_date, to_date, reason) {
   return rows[0];
 }
 
+async function getStatistics() {
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Helper to get count and trend
+  const getCountAndTrend = async (table, dateField, additionalWhere = '') => {
+    const [todayRows] = await db.query(
+      `SELECT COUNT(*) as count FROM ${table} WHERE DATE(${dateField}) = CURDATE() ${additionalWhere}`
+    );
+    const [yesterdayRows] = await db.query(
+      `SELECT COUNT(*) as count FROM ${table} WHERE DATE(${dateField}) = CURDATE() - INTERVAL 1 DAY ${additionalWhere}`
+    );
+    const todayCount = todayRows[0].count;
+    const yesterdayCount = yesterdayRows[0].count;
+    let trend = 0;
+    if (yesterdayCount > 0) {
+      trend = ((todayCount - yesterdayCount) / yesterdayCount) * 100;
+    } else if (todayCount > 0) {
+      trend = 100;
+    }
+    return { value: todayCount, trend: parseFloat(trend.toFixed(1)) };
+  };
+
+  // 1. 今日挂号
+  const registrations = await getCountAndTrend('orders', 'created_at');
+
+  // 2. 今日收入
+  const [todayRevenueRows] = await db.query(
+    `SELECT SUM(amount) as total FROM payments WHERE status = 'paid' AND DATE(paid_at) = CURDATE()`
+  );
+  const [yesterdayRevenueRows] = await db.query(
+    `SELECT SUM(amount) as total FROM payments WHERE status = 'paid' AND DATE(paid_at) = CURDATE() - INTERVAL 1 DAY`
+  );
+  const todayRevenue = todayRevenueRows[0].total || 0;
+  const yesterdayRevenue = yesterdayRevenueRows[0].total || 0;
+  let revenueTrend = 0;
+  if (yesterdayRevenue > 0) {
+    revenueTrend = ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100;
+  } else if (todayRevenue > 0) {
+    revenueTrend = 100;
+  }
+  const revenue = { value: parseFloat(todayRevenue).toFixed(2), trend: parseFloat(revenueTrend.toFixed(1)) };
+
+  // 3. 新增患者
+  const newPatients = await getCountAndTrend('accounts', 'created_at', "AND role = 'user'");
+
+  // 4. 医生出诊
+  const [todayDoctors] = await db.query(
+    `SELECT COUNT(DISTINCT doctor_id) as count FROM doctor_availability WHERE date = CURDATE()`
+  );
+  const [yesterdayDoctors] = await db.query(
+    `SELECT COUNT(DISTINCT doctor_id) as count FROM doctor_availability WHERE date = CURDATE() - INTERVAL 1 DAY`
+  );
+  const todayDocCount = todayDoctors[0].count;
+  const yesterdayDocCount = yesterdayDoctors[0].count;
+  let docTrend = 0;
+  if (yesterdayDocCount > 0) {
+    docTrend = ((todayDocCount - yesterdayDocCount) / yesterdayDocCount) * 100;
+  } else if (todayDocCount > 0) {
+    docTrend = 100;
+  }
+  const activeDoctors = { value: todayDocCount, trend: parseFloat(docTrend.toFixed(1)) };
+
+  // 5. 近7日挂号趋势
+  const [trendRows] = await db.query(`
+    SELECT DATE_FORMAT(date, '%Y-%m-%d') as date, COUNT(*) as count 
+    FROM orders 
+    WHERE created_at >= CURDATE() - INTERVAL 6 DAY 
+    GROUP BY DATE_FORMAT(date, '%Y-%m-%d') 
+    ORDER BY date ASC
+  `);
+  
+  // Fill in missing dates
+  const last7Days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const found = trendRows.find(r => r.date === dateStr);
+    last7Days.push({ date: dateStr, count: found ? found.count : 0 });
+  }
+
+  // 6. 科室挂号占比
+  const [deptShareRows] = await db.query(`
+    SELECT d.name, COUNT(*) as count 
+    FROM orders o 
+    JOIN departments d ON o.department_id = d.id 
+    GROUP BY d.id, d.name
+  `);
+
+  return {
+    cards: [
+      { title: '今日挂号', value: registrations.value, trend: registrations.trend, type: 'primary', tag: '日' },
+      { title: '今日收入', value: `¥ ${revenue.value}`, trend: revenue.trend, type: 'success', tag: '日' },
+      { title: '新增患者', value: newPatients.value, trend: newPatients.trend, type: 'warning', tag: '日' },
+      { title: '医生出诊', value: activeDoctors.value, trend: activeDoctors.trend, type: 'info', tag: '日' }
+    ],
+    trend: {
+      dates: last7Days.map(d => d.date),
+      values: last7Days.map(d => d.count)
+    },
+    departmentShare: deptShareRows.map(r => ({ name: r.name, value: r.count }))
+  };
+}
+
 module.exports = {
   ensureTables,
   listDepartments, createDepartment, updateDepartment, deleteDepartment,
@@ -258,5 +362,6 @@ module.exports = {
   getAvailabilityByDoctor, listAllAvailability, deleteAvailability, createOrUpdateAvailability,
   listFees, setFee,
   listPendingDoctorReviews, approveDoctorProfile, rejectDoctorProfile,
-  listLeaveRequests, setLeaveRequestStatus, createLeaveRequest
+  listLeaveRequests, setLeaveRequestStatus, createLeaveRequest,
+  getStatistics
 };
