@@ -10,6 +10,8 @@
     "build:admin": "npm --prefix admin-vite install && npm --prefix admin-vite run build",
     "build": "npm run build:admin",
     "test": "mocha --recursive --timeout 5000 --exit",
+    "test:notification": "mocha --exit test/notification --timeout 5000",
+    "perf": "k6 run backend/test/perf/appointment_load_test.js",
     "test:watch": "mocha --recursive --watch",
     "test:ci": "npm run ensure-db && npm test"
   },
