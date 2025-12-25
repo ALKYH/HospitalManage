@@ -2,6 +2,8 @@ const app = require('./app');
 const mq = require('./mq');
 const orderSubscriber = require('./mq/subscriber');
 const adminService = require('./services/adminService');
+const db = require('./db');
+const bcrypt = require('bcryptjs');
 const path = require('path');
 
 const port = process.env.PORT || 3000;
@@ -36,6 +38,24 @@ const ip = '0.0.0.0';
       await notificationConsumer.init();
     } catch (ncErr) {
       console.warn('Failed to init notification consumer', ncErr.message);
+    }
+
+    // Ensure admin account exists when configured. In production, default to admin/123456
+    try {
+      const adminUser = process.env.ADMIN_USER || (process.env.NODE_ENV === 'production' ? 'admin' : null);
+      const adminPass = process.env.ADMIN_PASS || (process.env.NODE_ENV === 'production' ? '123456' : null);
+      if (adminUser && adminPass) {
+        const [rows] = await db.query('SELECT * FROM accounts WHERE username = ?', [adminUser]);
+        if (!rows || rows.length === 0) {
+          const hash = bcrypt.hashSync(adminPass, 10);
+          await db.query('INSERT INTO accounts (username, password_hash, role) VALUES (?, ?, ?)', [adminUser, hash, 'admin']);
+          console.log(`Created admin user '${adminUser}'`);
+        } else {
+          console.log(`Admin user '${adminUser}' already exists`);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to ensure admin user', e.message);
     }
 
     app.listen(port, ip, () => {
