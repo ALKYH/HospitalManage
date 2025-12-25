@@ -34,6 +34,7 @@ Page({
   goShift() { wx.navigateTo({ url: '/pages/docShift/docShift' }); },
   goInfo() { wx.navigateTo({ url: '/pages/docInfo/docInfo' }); },
   goAbsence() { wx.navigateTo({ url: '/pages/docAbsence/docAbsence' }); },
+  goCase() { wx.navigateTo({ url: '/pages/Case/Case' }); },
   
   onLogout() { 
     wx.removeStorageSync('token'); 

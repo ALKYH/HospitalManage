@@ -1,21 +1,18 @@
 // pages/docProfile/docProfile.js
+const request = require('../../utils/request')
+
 Page({
 
-  /**
-   * 页面的初始数据
-   */
   data: {
 
     filteredDoctors: [],
-    selectedDept: '请选择科室',
-    selectedDoc: '请选择医生',
+      registrations: [],
+      message: ''
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
   onLoad(options) {
 
+      this.loadRegistrations()
   },
   goToDepartment() {
     wx.navigateTo({
@@ -52,42 +49,26 @@ Page({
   },
   onDeptChange: function(e) {
 
-  },  
+  },
+  async loadRegistrations() {
+      this.setData({ message: '正在加载...' })
+      try {
+        const res = await request.get('/api/registration/my-registrations')
+        if (res && res.success) {
+          this.setData({ registrations: res.data || [], message: '' })
+        } else {
+          this.setData({ message: res && res.message ? res.message : '无法获取挂号记录' })
+        }
+      } catch (err) {
+        console.error('loadRegistrations error:', err)
+        // 尝试从标准错误结构中提取 message
+        let msg = '加载失败';
+        if (err && err.body && err.body.message) msg = err.body.message;
+        else if (err && err.error && err.error.message) msg = err.error.message;
+        else if (err && err.message) msg = err.message;
+        this.setData({ message: msg })
+      }
+    },  
   onDocChange: function(e) {
-
-  },
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
   }
 })

@@ -73,6 +73,23 @@ exports.listOrdersByUser = async (req, res) => {
   }
 };
 
+// 返回当前登录账号（患者）的所有挂号记录，包含医生信息与 note 字段
+exports.myRegistrations = async (req, res) => {
+  try {
+    console.log('myRegistrations called, req.user=', req.user);
+    console.log('Authorization header=', req.headers && (req.headers.authorization || req.headers.Authorization));
+    const accountId = req.user && req.user.id;
+    if (!accountId) return res.status(401).json({ success: false, message: 'unauthenticated' });
+    const list = await registrationService.getRegistrationsByAccount(accountId);
+    return res.json({ success: true, data: list });
+  } catch (err) {
+    console.error('myRegistrations error', err);
+    // 返回详细错误信息以便前端调试（上线前请移除或简化）
+    const msg = err && err.message ? err.message : 'internal_error';
+    return res.status(500).json({ success: false, message: msg, stack: err.stack });
+  }
+};
+
 exports.updateStatus = async (req, res) => {
   try {
     const { id, status } = req.body;
@@ -80,6 +97,44 @@ exports.updateStatus = async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false });
+  }
+};
+
+// 医生或管理员编辑订单的病例内容（note 字段）
+exports.editNote = async (req, res) => {
+  try {
+    const { order_id, note } = req.body;
+    if (!order_id) return res.status(400).json({ success: false, message: 'missing order_id' });
+
+    // req.user 从 authMiddleware 注入：{ id, username, role }
+    const user = req.user || {};
+
+    const [rows] = await db.query('SELECT * FROM orders WHERE id = ?', [order_id]);
+    const order = rows[0];
+    if (!order) return res.status(404).json({ success: false, message: 'order not found' });
+
+    // 权限：医生只能编辑属于自己的订单；管理员可编辑任意
+    if (user.role === 'doctor') {
+      // req.user.id 是账号 id，需要把账号 id 映射到 doctors 表的 id
+      const [docs] = await db.query('SELECT * FROM doctors WHERE account_id = ?', [user.id]);
+      if (!docs || docs.length === 0) return res.status(403).json({ success: false, message: 'forbidden' });
+      const doctorId = docs[0].id;
+      if (parseInt(doctorId, 10) !== parseInt(order.doctor_id, 10)) {
+        return res.status(403).json({ success: false, message: 'forbidden' });
+      }
+    } else if (user.role !== 'admin') {
+      // 非医生且非管理员则拒绝（患者不应通过该接口写病例）
+      return res.status(403).json({ success: false, message: 'forbidden' });
+    }
+
+    // 使用 service 执行更新（包含事务与 history 记录）
+    const registrationService = require('../services/registrationService');
+    const updated = await registrationService.updateOrderNote(order_id, note, user.id || null);
+
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error('editNote error', err);
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 

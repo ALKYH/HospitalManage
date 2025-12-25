@@ -1,21 +1,51 @@
-<!--pages/docProfile/docProfile.wxml-->
-  <!-- 科室选择卡片 -->
-  <view class="card">
-    <text class="card-title">科室选择</text>
-    <view class="card-content">
-      <button class="action-btn" bindtap="goToDepartment">选择科室</button>
-      <picker mode="selector" range="{{departments}}" bindchange="onDeptChange" disabled="true">
-        <view class="picker-display">{{selectedDept || '请选择科室'}}</view>
-      </picker>
+<view class="container">
+  <view class="header-bg"></view>
+
+  <view class="card shadow slide-in">
+    <view class="card-header">
+      <view class="section-title-line">电子病历档案</view>
+      <view class="refresh-box" bindtap="loadRegistrations">
+        <text class="refresh-icon">↻</text>
+        <text>刷新</text>
+      </view>
     </view>
+    <view class="message-tip" wx:if="{{message}}">{{message}}</view>
   </view>
-    <!-- 医生选择卡片 -->
-    <view class="card">
-    <text class="card-title">医生选择</text>
-    <view class="card-content">
-      <button class="action-btn" bindtap="goToDocs">选择医生</button>
-      <picker mode="selector" range="{{doctors}}" bindchange="onDocChange" disabled="true">
-        <view class="picker-display">{{selectedDoc || '请选择医生'}}</view>
-      </picker>
-    </view>
+
+  <view class="list-container" wx:if="{{registrations && registrations.length > 0}}">
+    <block wx:for="{{registrations}}" wx:key="id">
+      <view class="case-item card shadow slide-in" style="animation-delay: {{index * 0.1}}s">
+        <view class="item-header">
+          <view class="order-no">订单 #{{item.id}}</view>
+          <view class="visit-time">{{item.date}} {{item.slot}}</view>
+        </view>
+
+        <view class="divider"></view>
+
+        <view class="item-body">
+          <view class="doctor-info">
+            <text class="doc-label">接诊医生</text>
+            <text class="doc-name">{{item.doctor_name || ('#'+item.doctor_id)}}</text>
+          </view>
+          
+          <view class="note-section">
+            <view class="note-header">
+              <view class="note-tag"></view>
+              <text class="label">诊断及处理建议</text>
+            </view>
+            <view class="note-content">{{item.note || '医生暂未填写病历内容'}}</view>
+          </view>
+        </view>
+
+        <view class="item-footer">
+          <text class="create-at">档案生成于: {{item.created_at}}</text>
+        </view>
+      </view>
+    </block>
   </view>
+
+  <view wx:if="{{!registrations || registrations.length === 0}}" class="empty-state">
+    <view class="empty-icon">📂</view>
+    <text>暂无挂号记录或医生尚未填写病例</text>
+  </view>
+</view>

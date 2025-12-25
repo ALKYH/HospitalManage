@@ -178,3 +178,78 @@ async function cancelRegistration(orderId, cancelledBy) {
 }
 
 module.exports = { createRegistration, cancelRegistration };
+
+// 更新订单的 note 字段（用于医生撰写/编辑病历）
+async function updateOrderNote(orderId, note, actor) {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [rows] = await conn.query('SELECT * FROM orders WHERE id = ? FOR UPDATE', [orderId]);
+    const order = rows[0];
+    if (!order) throw new Error('order not found');
+
+    await conn.query('UPDATE orders SET note = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [note || null, orderId]);
+
+    // 尝试记录到 order_history（如果表存在）；出错则忽略该步骤
+    try {
+      await conn.query(
+        'INSERT INTO order_history (order_id, action_by, action, comment, created_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)',
+        [orderId, actor || null, 'edit_note', note || null]
+      );
+    } catch (e) {
+      // ignore if history table missing or other non-fatal error
+      console.warn('order_history insert failed (ignored):', e.message);
+    }
+
+    const [updatedRows] = await conn.query('SELECT * FROM orders WHERE id = ?', [orderId]);
+    await conn.commit();
+    return updatedRows[0];
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
+module.exports.updateOrderNote = updateOrderNote;
+
+// 获取某个账号（患者）的所有挂号单，包含医生信息与医生填写的 note 字段
+async function getRegistrationsByAccount(accountId) {
+  const sql = `
+    SELECT o.id AS id,
+           o.account_id AS patient_id,
+           o.doctor_id AS doctor_id,
+           o.availability_id,
+           o.date AS appointment_time,
+           o.slot,
+           o.status,
+           o.is_waitlist,
+           o.note,
+           o.created_at,
+           d.name AS doctor_name,
+           d.title AS doctor_title
+    FROM orders o
+    LEFT JOIN doctors d ON o.doctor_id = d.id
+    WHERE o.account_id = ?
+    ORDER BY o.date DESC, o.created_at DESC
+  `;
+  try {
+    const result = await db.query(sql, [accountId]);
+    const rows = Array.isArray(result) && Array.isArray(result[0]) ? result[0] : result;
+    return rows;
+  } catch (err) {
+    // 尝试 execute
+    try {
+      const result2 = await db.execute(sql, [accountId]);
+      const rows2 = Array.isArray(result2) && Array.isArray(result2[0]) ? result2[0] : result2;
+      return rows2;
+    } catch (e) {
+      console.error('getRegistrationsByAccount err', err, e);
+      throw err;
+    }
+  }
+}
+
+module.exports.getRegistrationsByAccount = getRegistrationsByAccount;

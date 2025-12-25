@@ -15,6 +15,7 @@
 					<view>科室ID: {{item.department_id || '—'}} 医生ID: {{item.doctor_id || '—'}}</view>
 					<view>备注: {{item.note || '无'}}</view>
 					<view class="meta">创建于: {{item.created_at}}</view>
+					<button bindtap="goToCase" data-id="{{item.id}}">写病历</button>
 				</view>
 			</block>
 			<view wx:if="{{!registrations || registrations.length === 0}}">暂无挂号记录</view>

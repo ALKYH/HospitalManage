@@ -1,0 +1,64 @@
+<view class="container">
+  <view class="header-bg"></view>
+
+  <view class="main-content">
+    <view class="card shadow slide-in">
+      <view class="section-title-line">挂号单选择</view>
+      <view class="row-picker">
+        <picker class="full-picker" mode="selector" range="{{registrations}}" range-key="label" bindchange="onPickRegistration">
+          <view class="picker-inner">
+            <text class="{{selectedLabel ? 'value' : 'placeholder'}}">{{ selectedLabel || '点击选择待诊挂号单' }}</text>
+            <view class="arrow-down"></view>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="card shadow slide-in" wx:if="{{order}}" style="animation-delay: 0.1s;">
+      <view class="order-header">
+        <view class="patient-info">
+          <text class="p-name">{{order.patient_name || order.account_username}}</text>
+          <text class="p-tag">就诊人</text>
+        </view>
+        <view class="order-status-tag {{order.status === 'completed' ? 'gray' : 'blue'}}">{{order.status}}</view>
+      </view>
+      <view class="divider"></view>
+      <view class="info-grid">
+        <view class="info-item">
+          <text class="i-label">订单ID</text>
+          <text class="i-value">{{order.id}}</text>
+        </view>
+        <view class="info-item">
+          <text class="i-label">预约时间</text>
+          <text class="i-value">{{order.date}} {{order.slot}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card shadow slide-in" wx:if="{{order}}" style="animation-delay: 0.2s;">
+      <view class="section-title-line">病历诊断 (Note)</view>
+      <view class="editor-container">
+        <textarea 
+          class="note-textarea" 
+          value="{{noteText}}" 
+          placeholder="请在此填写病例诊断、处置建议、医嘱等详细信息..." 
+          bindinput="onNoteInput" 
+          maxlength="2000"
+          show-confirm-bar="true"
+        ></textarea>
+        <view class="word-count">{{noteText.length || 0}}/2000</view>
+      </view>
+      
+      <view class="actions">
+        <button class="primary-action-btn" bindtap="saveNote" loading="{{saving}}">
+          <text wx:if="{{!saving}}">完成并保存病历</text>
+        </button>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{!order && registrations.length === 0}}">
+      <icon type="info" size="64" color="#cbd5e0"></icon>
+      <text class="empty-text">暂无分配到您的就诊单</text>
+    </view>
+  </view>
+</view>

@@ -81,6 +81,13 @@ Page({
     }
   },
 
+  goToCase(e) {
+    // prevent parent tap
+    e.stopPropagation && e.stopPropagation();
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: `/pages/Case/Case?order_id=${id}` });
+  },
+
   /**
    * 生命周期函数--监听页面隐藏
    */

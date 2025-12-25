@@ -10,8 +10,6 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/backend/index.js" },
-    { "src": "/assets/(.*)", "dest": "/backend/admin-vite/dist/assets/$1" },
-    { "src": "/favicon.ico", "dest": "/backend/admin-vite/dist/favicon.ico" },
-    { "src": "/(.*)", "dest": "/backend/admin-vite/dist/index.html" }
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

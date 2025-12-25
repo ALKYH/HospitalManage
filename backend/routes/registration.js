@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/registrationController');
+const auth = require('../middlewares/authMiddleware');
 
 /**
  * @swagger
@@ -307,6 +308,9 @@ router.get('/list/:user_id', controller.listByUser);
  */
 router.get('/orders/:user_id', controller.listOrdersByUser);
 
+// 获取当前登录患者的所有挂号（含医生信息与医生填写的 note）
+router.get('/my-registrations', auth, controller.myRegistrations);
+
 /**
  * @swagger
  * /api/registration/update-status:
@@ -451,5 +455,11 @@ router.post('/cancel', async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+/**
+ * 医生编辑病历（订单 note 字段）
+ * 请求体: { order_id, note }
+ */
+router.post('/edit-note', auth, controller.editNote);
 
 module.exports = router;
