@@ -1,7 +1,10 @@
 {
   "version": 2,
   "builds": [
-    { "src": "backend/index.js", "use": "@vercel/node" },
+    { 
+      "src": "backend/index.js", 
+      "use": "@vercel/node" 
+    },
     {
       "src": "backend/admin-vite/package.json",
       "use": "@vercel/static-build",
@@ -10,7 +13,11 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/backend/index.js" },
-    { "src": "\\/(.*\\.(js|css|png|jpg|svg|ico|json))", "dest": "/backend/admin-vite/dist/$1" },
-    { "src": "\\/(.*)", "dest": "/backend/admin-vite/dist/index.html" }
+    { "src": "/health", "dest": "/backend/index.js" },
+    { "src": "/api-docs(.*)", "dest": "/backend/index.js" },
+    { "src": "/docs", "dest": "/backend/index.js" },
+    { "src": "/admin/(.*)", "dest": "/backend/admin-vite/$1" },
+    { "src": "/admin", "dest": "/backend/admin-vite/index.html" },
+    { "src": "/", "dest": "/backend/index.js" }
   ]
 }
