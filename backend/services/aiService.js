@@ -79,7 +79,7 @@ class AIService {
     // 移除操作格式，保留用户可读的文本
     return text
       .replace(/\[([^\]]+)\]\{action:[^}]+\}/g, '$1')
-      .replace(/\{action:\s*"fillForm"[^}]*\}/g, '')
+      .replace(/\{action:\s*"fillForm",\s*formData:\s*\{[^}]*\}\s*\}/g, '')
       .trim();
   }
 

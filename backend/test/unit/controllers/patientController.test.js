@@ -60,7 +60,7 @@ describe('patientController', () => {
     });
 
     it('should fail if missing required fields', async () => {
-      req.body = { display_name: 'John' }; // missing others
+      req.body = { display_name: 'John' }; // 缺少其他必填字段
       await patientController.submitProfile(req, res);
       expect(res.status.calledWith(400)).to.be.true;
       expect(res.json.calledWithMatch({ message: '需提供学/工号、姓名和身份证号' })).to.be.true;

@@ -20,15 +20,15 @@ describe('doctorService', () => {
       booked: 2,
       extra: JSON.stringify({ capacity_types: { 普通: 3, 专家: 2 }, booked_types: { 普通: 1, 专家: 1 } })
     };
-    // stub db.query to return rows
+    // 使用 stub 拦截 db.query，返回模拟的排班数据
     stubs.push(sinon.stub(db, 'query').resolves([[sampleRow]]));
 
     const result = await doctorService.getAvailabilityByDoctor(2, '2025-11-27');
     expect(result).to.be.an('array').with.length(1);
     const mapped = result[0];
     expect(mapped).to.have.property('available_by_type');
-    expect(mapped.available_by_type['普通']).to.equal(2); // 3 - 1
-    expect(mapped.available_by_type['专家']).to.equal(1); // 2 - 1
+    expect(mapped.available_by_type['普通']).to.equal(2); // 3 - 1：普通号 剩余 2 个
+    expect(mapped.available_by_type['专家']).to.equal(1); // 2 - 1：专家号 剩余 1 个
   });
 
   it('falls back to default when extra missing', async () => {
@@ -47,4 +47,5 @@ describe('doctorService', () => {
     const mapped = result[0];
     expect(mapped.available_by_type['默认']).to.equal(3);
   });
+
 });

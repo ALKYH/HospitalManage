@@ -12,7 +12,7 @@ describe('registrationService', () => {
   });
 
   it('should confirm registration when day-level capacity available', async () => {
-    // prepare a fake connection that returns availability with capacity > booked
+    // 构造一个假的连接：返回可用容量大于已预约数量的排班记录
     const fakeConn = {
       beginTransaction: async () => {},
       commit: async () => {},
@@ -73,7 +73,7 @@ describe('registrationService', () => {
   });
 
   it('should promote earliest waitlist order when a confirmed order is cancelled', async () => {
-    // simulate cancelling a confirmed order and promoting the earliest waiting order
+    // 模拟取消一个已确认订单，并将最早的候补订单提升为确认状态
     const confirmedOrder = { id: 300, doctor_id: 6, date: '2026-01-12', status: 'confirmed', is_waitlist: 0 };
     const waitingOrder = { id: 301, doctor_id: 6, date: '2026-01-12', status: 'waiting', is_waitlist: 1 };
 
@@ -84,31 +84,31 @@ describe('registrationService', () => {
       rollback: async () => { calls.push('rollback'); },
       release: () => { calls.push('release'); },
       query: async (sql, params) => {
-        // SELECT order FOR UPDATE
+        // SELECT order FOR UPDATE：锁定要取消的订单
         if (sql.startsWith('SELECT * FROM orders WHERE id = ? FOR UPDATE')) {
           return [[confirmedOrder]];
         }
-        // UPDATE orders SET status = cancelled
+        // UPDATE orders SET status = cancelled：把当前订单状态改为已取消
         if (sql.startsWith('UPDATE orders SET status = ?')) {
           return [{ affectedRows: 1 }];
         }
-        // SELECT doctor_availability FOR UPDATE
+        // SELECT doctor_availability FOR UPDATE：锁定对应的排班记录
         if (sql.startsWith('SELECT * FROM doctor_availability WHERE doctor_id = ? AND date = ? FOR UPDATE')) {
           return [[{ id: 77, doctor_id: 6, date: '2026-01-12', slot: '8-10', capacity: 5, booked: 3 }]];
         }
-        // UPDATE doctor_availability SET booked = ? (decrement)
+        // UPDATE doctor_availability SET booked = ?：减少已预约数量
         if (sql.startsWith('UPDATE doctor_availability SET booked = ? WHERE doctor_id')) {
           return [{ affectedRows: 1 }];
         }
-        // SELECT next waiting order FOR UPDATE
+        // SELECT next waiting order FOR UPDATE：查询最早的候补订单
         if (sql.startsWith("SELECT * FROM orders WHERE doctor_id = ? AND date = ? AND is_waitlist = 1")) {
           return [[waitingOrder]];
         }
-        // UPDATE orders SET status = confirmed for promoted
+        // UPDATE orders SET status = confirmed：将候补订单状态更新为确认
         if (sql.startsWith('UPDATE orders SET status = ?, is_waitlist = 0')) {
           return [{ affectedRows: 1 }];
         }
-        // UPDATE doctor_availability SET booked = ? (increment after promotion)
+        // UPDATE doctor_availability SET booked = ?：提升后再次增加已预约数量
         if (sql.startsWith('UPDATE doctor_availability SET booked = ? WHERE doctor_id')) {
           return [{ affectedRows: 1 }];
         }
@@ -124,7 +124,7 @@ describe('registrationService', () => {
 
     const res = await registrationService.cancelRegistration(confirmedOrder.id, 999);
     expect(res).to.have.property('success', true);
-    // ensure begin/commit were called
+    // 确保事务的 begin 和 commit 都被调用过
     expect(calls).to.include('begin');
     expect(calls).to.include('commit');
   });

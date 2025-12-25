@@ -33,30 +33,35 @@ describe('patientService', () => {
   });
 
   describe('verifyAgainstStaffList', () => {
-    // Note: verifyAgainstStaffList is not exported directly in the file provided in context, 
-    // but usually services export all functions or an object. 
-    // Looking at the file content, it seems it might be exported as part of the module.exports object at the end.
-    // Let's assume it is exported. If not, we might need to check how it's used or exported.
-    // Wait, the read_file output didn't show the exports. Let's assume standard export pattern.
+    // verifyAgainstStaffList 使用一个静态 JSON 职工名单，可以直接基于真实文件中的数据进行校验
+    // 也可以通过 mock require 实现，但如果不用 proxyquire 之类的库会比较麻烦
+    // 该函数逻辑本身很简单：检查输入是否匹配名单中的任意一条记录
+    // 这里假定职工名单已经正常加载，主要验证逻辑分支
+    // 为了稳健起见，可以认为名单可能有数据，也可能为空
+    // 在单元测试中，我们不改动真实文件，而是重点测试未匹配到数据时的返回结果
     
-    // If verifyAgainstStaffList is internal helper, we can't test it directly unless exported.
-    // However, saveProfile likely uses it.
-    // Let's test saveProfile instead if verifyAgainstStaffList is not exported.
-    // But usually in these projects, helper functions might be exported for testing or used by other methods.
-    // Let's check the end of the file to see exports.
+    it('should return false if input is incomplete', () => {
+      expect(patientService.verifyAgainstStaffList({})).to.be.false;
+      expect(patientService.verifyAgainstStaffList({ name: 'A' })).to.be.false;
+    });
+
+    it('should return false if no match found', () => {
+      const input = { employeeId: '999999', name: 'NoSuchPerson', idNumber: '000000' };
+      expect(patientService.verifyAgainstStaffList(input)).to.be.false;
+    });
   });
 
   describe('saveProfile', () => {
     it('should insert new profile if not exists', async () => {
       const queryStub = sinon.stub(db, 'query');
       
-      // 1. getProfileByAccountId -> returns empty (not exists)
+      // 1. getProfileByAccountId -> 返回空结果（不存在档案）
       queryStub.onCall(0).resolves([ [] ]);
       
-      // 2. INSERT query
+      // 2. 执行 INSERT 插入新档案
       queryStub.onCall(1).resolves([{ insertId: 123 }]);
       
-      // 3. SELECT newly created profile
+      // 3. 再次 SELECT 读取新创建的档案
       const newProfile = { id: 123, account_id: 1, display_name: 'Jane Doe' };
       queryStub.onCall(2).resolves([ [newProfile] ]);
       
@@ -66,7 +71,7 @@ describe('patientService', () => {
       const result = await patientService.saveProfile(1, payload);
 
       expect(queryStub.callCount).to.equal(3);
-      expect(queryStub.firstCall.args[1]).to.deep.equal([1]); // check existence
+      expect(queryStub.firstCall.args[1]).to.deep.equal([1]); // 校验第一次调用是否按 account_id 查询是否存在
       expect(queryStub.secondCall.args[0]).to.include('INSERT INTO profiles');
       expect(result).to.deep.equal(newProfile);
     });
@@ -74,14 +79,14 @@ describe('patientService', () => {
     it('should update profile if exists', async () => {
       const queryStub = sinon.stub(db, 'query');
       
-      // 1. getProfileByAccountId -> returns existing
+      // 1. getProfileByAccountId -> 返回已存在的档案
       const existing = { id: 123, account_id: 1, display_name: 'Old Name' };
       queryStub.onCall(0).resolves([ [existing] ]);
       
-      // 2. UPDATE query
+      // 2. 执行 UPDATE 更新档案
       queryStub.onCall(1).resolves([{ affectedRows: 1 }]);
       
-      // 3. SELECT updated profile
+      // 3. 再次 SELECT 读取更新后的档案
       const updatedProfile = { id: 123, account_id: 1, display_name: 'New Name' };
       queryStub.onCall(2).resolves([ [updatedProfile] ]);
       
@@ -94,23 +99,21 @@ describe('patientService', () => {
       expect(queryStub.secondCall.args[0]).to.include('UPDATE profiles SET');
       expect(result).to.deep.equal(updatedProfile);
     });
-  });
 
-  describe('verifyAgainstStaffList', () => {
-    it('should return true for valid staff', () => {
-      // We need to mock the staffList data or rely on the real json file if it's static.
-      // Since verifyAgainstStaffList imports staffList.json directly, we can't easily mock it 
-      // without proxyquire or similar, unless we rely on the actual content of staffList.json.
-      // Assuming staffList.json has some data or we can mock the require.
-      
-      // For simplicity in this environment, let's assume we can't easily mock the internal require 
-      // without a tool like proxyquire or modifying the service to accept the list.
-      // However, we can try to match something that MIGHT be in the list or just test the logic 
-      // if we knew the content.
-      
-      // Alternatively, we can test the negative case which should always work (empty/invalid inputs).
-      const result = patientService.verifyAgainstStaffList({ employeeId: null });
-      expect(result).to.be.false;
+    it('should truncate long fields', async () => {
+      const queryStub = sinon.stub(db, 'query');
+      queryStub.onCall(0).resolves([ [] ]); // 档案不存在
+      queryStub.onCall(1).resolves([{ insertId: 124 }]);
+      queryStub.onCall(2).resolves([ [{ id: 124 }] ]);
+      stubs.push(queryStub);
+
+      const longName = 'a'.repeat(200); // 超过长度限制 100 的显示名
+      await patientService.saveProfile(2, { display_name: longName });
+
+      const insertArgs = queryStub.secondCall.args[1];
+      // display_name 是参数数组中的第二个值（索引 1）
+      expect(insertArgs[1].length).to.equal(100);
     });
+
   });
 });

@@ -40,6 +40,25 @@ describe('authService', () => {
         expect(err.message).to.equal('用户名已存在');
       }
     });
+
+    it('should allow very long and complex usernames/passwords', async () => {
+      const longUsername = 'u'.repeat(200) + '_特殊字符_😀';
+      const longPassword = 'P@ssw0rd_' + 'x'.repeat(200);
+
+      const findStub = sinon.stub(AccountModel, 'findByUsername').resolves(null);
+      stubs.push(findStub);
+      const hashStub = sinon.stub(bcrypt, 'hash').resolves('hashed_long_pw');
+      stubs.push(hashStub);
+      const createStub = sinon.stub(AccountModel, 'create').resolves(42);
+      stubs.push(createStub);
+
+      const result = await authService.register(longUsername, longPassword);
+
+      expect(findStub.calledWith(longUsername)).to.be.true;
+      expect(hashStub.calledWith(longPassword, 10)).to.be.true;
+      expect(createStub.calledWith(longUsername, 'hashed_long_pw')).to.be.true;
+      expect(result).to.deep.equal({ id: 42, username: longUsername });
+    });
   });
 
   describe('login', () => {

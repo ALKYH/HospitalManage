@@ -23,6 +23,20 @@ describe('paymentService', () => {
       expect(queryStub.firstCall.args[0]).to.include('INSERT INTO payments');
       expect(result).to.deep.equal(newPayment);
     });
+
+    it('should handle zero and negative amount gracefully', async () => {
+      const queryStub = sinon.stub(db, 'query');
+      // 插入时 amount 为 0 或负数都应被透传到 SQL 参数中
+      queryStub.onCall(0).resolves([{ insertId: 20 }]);
+      const storedPayment = { id: 20, amount: -5, status: 'created' };
+      queryStub.onCall(1).resolves([[storedPayment]]);
+      stubs.push(queryStub);
+
+      const result = await paymentService.createPayment({ account_id: 1, amount: -5 });
+
+      expect(queryStub.firstCall.args[1][2]).to.equal(-5);
+      expect(result).to.deep.equal(storedPayment);
+    });
   });
 
   describe('markPaid', () => {
