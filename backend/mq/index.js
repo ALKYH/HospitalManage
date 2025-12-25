@@ -1,5 +1,6 @@
 let amqp;
 let MQ_DISABLED = false;
+//const MQ_DISABLED = process.env.NODE_ENV === 'test' || false;
 try {
   amqp = require('amqplib');
 } catch (err) {
@@ -18,6 +19,10 @@ async function connect() {
     console.warn('MQ connect skipped because MQ is disabled');
     return { connection: null, channel: null };
   }
+  //  if (MQ_DISABLED) {
+  //   console.log('MQ功能已禁用（测试环境）');
+  //   return null;
+  // }
 
   if (connection && channel) return { connection, channel };
 
@@ -72,8 +77,12 @@ async function bindQueue(queueName, exchange, routingKey) {
 }
 
 async function publish(routingKey, message, options = {}) {
+  // if (MQ_DISABLED) {
+  //   console.warn('MQ publish skipped (disabled). routingKey=', routingKey);
+  //   return true;
+  // }
   if (MQ_DISABLED) {
-    console.warn('MQ publish skipped (disabled). routingKey=', routingKey);
+    console.log(`[模拟MQ] 发布消息到 ${queue}:`, message);
     return true;
   }
   if (!channel) await connect();
@@ -94,6 +103,37 @@ async function publish(routingKey, message, options = {}) {
   // fallback: 普通 publish（不保证交付）
   return channel.publish('hospital.events', routingKey, payload, Object.assign({ persistent: true }, options));
 }
+// async function publish(routingKey, message, options = {}) {
+//   if (MQ_DISABLED) {
+//     console.log(`[模拟MQ] 发布消息到 ${routingKey}:`, typeof message === 'object' ? JSON.stringify(message).substring(0, 100) : message);
+//     return true; // 在测试环境直接返回成功
+//   }
+  
+//   if (!channel) await connect();
+//   if (MQ_DISABLED || !channel) {
+//     console.log(`[模拟MQ] MQ已禁用，跳过发布到 ${routingKey}`);
+//     return true;
+//   }
+  
+//   const payload = Buffer.from(JSON.stringify(message || {}));
+  
+//   if (confirmChannel) {
+//     return new Promise((resolve, reject) => {
+//       try {
+//         confirmChannel.publish('hospital.events', routingKey, payload, 
+//           Object.assign({ persistent: true }, options), 
+//           (err) => err ? reject(err) : resolve(true)
+//         );
+//       } catch (err) {
+//         reject(err);
+//       }
+//     });
+//   }
+  
+//   return channel.publish('hospital.events', routingKey, payload, 
+//     Object.assign({ persistent: true }, options)
+//   );
+// }
 
 async function subscribe(bindingKey, handler, opts = {}) {
   // If MQ disabled, return a no-op queue name

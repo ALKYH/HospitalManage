@@ -4,18 +4,28 @@
   "description": "Hospital Registration Backend",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "ensure-db": "node scripts/ensure_db.js",
-    "dev": "node scripts/ensure_db.js && nodemon server.js",
     "build:admin": "npm --prefix admin-vite install && npm --prefix admin-vite run build",
     "build": "npm run build:admin",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "mocha test/unit --recursive --timeout 5000 --exit",
-    "test:integration": "mocha test/integration --recursive --timeout 5000 --exit",
     "test:performance": "k6 run test/performance/appointment_load_test.js",
     "test:security": "echo 'No security tests yet'",
     "test:watch": "mocha test/unit --recursive --watch",
-    "test:ci": "npm run ensure-db && npm test"
+    "test:ci": "npm run ensure-db && npm test",
+    "test:integration": "NODE_ENV=test jest test/integration --setupFilesAfterEnv=test/test.setup.js --forceExit",
+    "test:integration:auth": "cross-env NODE_ENV=test jest test/integration/authFlow.test.js --setupFilesAfterEnv=./test/test.setup.js --forceExit",
+    "test:integration:watch": "NODE_ENV=test jest test/integration --setupFilesAfterEnv=test/test.setup.js --watch --forceExit",
+    "test:integration:fullflow": "cross-env NODE_ENV=test jest test/integration/registrationFullFlow.test.js --setupFilesAfterEnv=./test/test.setup.js --forceExit --verbose",
+    "test:setup:db": "mysql -u root -pReally0733251 hospital_test < test/schema/init_test_db.sql",
+    "test:reset": "mysql -u root -pReally0733251 -e \"DROP DATABASE IF EXISTS hospital_test; CREATE DATABASE hospital_test;\" && npm run test:setup:db",
+    "test:waitlist": "cross-env NODE_ENV=test jest test/integration/waitlistPromotion.test.js --setupFilesAfterEnv=./test/test.setup.js --forceExit",
+    "test:payment": "cross-env NODE_ENV=test jest test/integration/paymentCallback.test.js --setupFilesAfterEnv=./test/test.setup.js --forceExit",
+    "test:admin": "cross-env NODE_ENV=test jest test/integration/adminDataSync.test.js --setupFilesAfterEnv=./test/test.setup.js --forceExit",
+    "test:all": "cross-env NODE_ENV=test jest test/integration --setupFilesAfterEnv=./test/test.setup.js --forceExit",
+    "test:patient": "cross-env NODE_ENV=test jest test/integration/patientProfile.test.js --setupFilesAfterEnv=./test/test.setup.js --forceExit"
   },
   "dependencies": {
     "amqplib": "^0.10.3",
@@ -32,9 +42,16 @@
   },
   "devDependencies": {
     "chai": "^4.3.7",
+    "cross-env": "^10.1.0",
+    "jest": "^30.2.0",
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
+    "redis-memory-server": "^0.14.1",
     "sinon": "^15.0.1",
-    "supertest": "^6.3.3"
+    "supertest": "^6.3.4"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 10000
   }
 }
