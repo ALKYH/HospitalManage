@@ -10,17 +10,17 @@ describe('notification-service processor', () => {
 
     // stub smtp provider
     smtpStub = { send: sinon.stub().resolves() };
-    const smtpPath = path.resolve(__dirname, '../../notification-service/providers/smtp.js');
+    const smtpPath = path.resolve(__dirname, '../../../notification-service/providers/smtp.js');
     require.cache[smtpPath] = { id: smtpPath, filename: smtpPath, exports: smtpStub };
 
     // stub redis provider
     redisStub = { setIfNotExists: sinon.stub().resolves(true) };
-    const redisPath = path.resolve(__dirname, '../../notification-service/providers/redis.js');
+    const redisPath = path.resolve(__dirname, '../../../notification-service/providers/redis.js');
     require.cache[redisPath] = { id: redisPath, filename: redisPath, exports: redisStub };
 
     // stub mqClient (capture publishes)
     mqStub = { publish: sinon.stub().resolves(), connect: sinon.stub().resolves(), subscribe: sinon.stub().resolves() };
-    const mqPath = path.resolve(__dirname, '../../notification-service/mqClient.js');
+    const mqPath = path.resolve(__dirname, '../../../notification-service/mqClient.js');
     require.cache[mqPath] = { id: mqPath, filename: mqPath, exports: mqStub };
 
     // stub dbClient (simple recorder)
@@ -33,24 +33,24 @@ describe('notification-service processor', () => {
         return [{}];
       }
     };
-    const dbPath = path.resolve(__dirname, '../../notification-service/dbClient.js');
+    const dbPath = path.resolve(__dirname, '../../../notification-service/dbClient.js');
     require.cache[dbPath] = { id: dbPath, filename: dbPath, exports: dbStub };
   });
 
   afterEach(() => {
     // clear injected modules from cache
     const injected = [
-      '../../notification-service/providers/smtp.js',
-      '../../notification-service/providers/redis.js',
-      '../../notification-service/mqClient.js',
-      '../../notification-service/dbClient.js'
+      '../../../notification-service/providers/smtp.js',
+      '../../../notification-service/providers/redis.js',
+      '../../../notification-service/mqClient.js',
+      '../../../notification-service/dbClient.js'
     ].map(p => path.resolve(__dirname, p));
     injected.forEach(p => { try { delete require.cache[p]; } catch (e) {} });
     sinon.restore();
   });
 
   it('sends email when recipient has email', async () => {
-    const processor = require('../../notification-service/processor');
+    const processor = require('../../../notification-service/processor');
 
     const payload = {
       patientId: 1,
@@ -64,7 +64,7 @@ describe('notification-service processor', () => {
     await processor.processEvent('appointment.created', payload);
 
     // smtp send should be called
-    const smtpPath = path.resolve(__dirname, '../../notification-service/providers/smtp.js');
+    const smtpPath = path.resolve(__dirname, '../../../notification-service/providers/smtp.js');
     const smtp = require.cache[smtpPath].exports;
     expect(smtp.send.called).to.be.true;
 
@@ -75,7 +75,7 @@ describe('notification-service processor', () => {
 
   it('skips email send when no email and marks skipped', async () => {
     // override redis to allow dedup
-    const processor = require('../../notification-service/processor');
+    const processor = require('../../../notification-service/processor');
 
     const payload = {
       patientId: 2,
@@ -85,7 +85,7 @@ describe('notification-service processor', () => {
 
     await processor.processEvent('appointment.created', payload);
 
-    const smtpPath = path.resolve(__dirname, '../../notification-service/providers/smtp.js');
+    const smtpPath = path.resolve(__dirname, '../../../notification-service/providers/smtp.js');
     const smtp = require.cache[smtpPath].exports;
     expect(smtp.send.called).to.be.false;
 

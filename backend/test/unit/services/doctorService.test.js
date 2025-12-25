@@ -1,6 +1,6 @@
-const { expect, sinon, restoreStubs } = require('../setup');
-const doctorService = require('../../services/doctorService');
-const db = require('../../db');
+const { expect, sinon, restoreStubs } = require('../../setup');
+const doctorService = require('../../../services/doctorService');
+const db = require('../../../db');
 
 describe('doctorService', () => {
   let stubs = [];

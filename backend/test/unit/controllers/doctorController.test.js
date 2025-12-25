@@ -1,7 +1,7 @@
-const { expect, sinon, restoreStubs } = require('../setup');
+const { expect, sinon, restoreStubs } = require('../../setup');
 const request = require('supertest');
-const app = require('../../app');
-const doctorService = require('../../services/doctorService');
+const app = require('../../../app');
+const doctorService = require('../../../services/doctorService');
 
 describe('doctorController (routes)', () => {
   let stubs = [];

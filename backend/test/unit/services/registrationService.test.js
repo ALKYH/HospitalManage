@@ -1,7 +1,7 @@
-const { expect, sinon, restoreStubs } = require('../setup');
-const registrationService = require('../../services/registrationService');
-const db = require('../../db');
-const mqPublisher = require('../../mq/publisher');
+const { expect, sinon, restoreStubs } = require('../../setup');
+const registrationService = require('../../../services/registrationService');
+const db = require('../../../db');
+const mqPublisher = require('../../../mq/publisher');
 
 describe('registrationService', () => {
   let stubs = [];
