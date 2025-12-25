@@ -1,0 +1,243 @@
+@startuml HospitalManage_Architecture
+' Simple, web-server compatible PlantUML for system architecture
+skinparam dpi 150
+skinparam shadowing true
+skinparam backgroundColor #F8FAFB
+skinparam componentStyle uml2
+
+title HospitalManage — 系统架构概览
+
+' Frontend: WeChat MiniApp
+package "WeChat 小程序 (app/)" #EEF6FF {
+  [MiniApp: Pages] as MiniApp
+  component "Pages (患者端)\nregister/book/appointment/orders/payment/profile" as PPages
+  component "Pages (医生端)\ndocLogin/docIndex/docShift/docPick/..." as DPages
+  component "Common utils\nrequest.js, notify.js, util.js" as MAUtils
+  MiniApp --> PPages
+  MiniApp --> DPages
+  MiniApp --> MAUtils
+}
+
+' Admin frontend
+package "Admin 前端 (backend/admin-vite)" #EEF6FF {
+  component "Admin SPA\n(Vue + Vite)" as AdminSPA
+  component "Static assets\n/backend/admin-vite/dist" as AdminDist
+  AdminSPA --> AdminDist
+}
+
+'API Gateway — Express
+package "API Gateway — Express" #FFECB3 {
+  component "Express App\napp.js, index.js, server.js" as ExpressApp
+}
+
+' Backend
+package "Backend (backend)" #FFF7E6 {
+
+  package "Routes" {
+    [authRoutes]
+    [doctorRoutes]
+    [registrationRoutes]
+    [paymentRoutes]
+    [notifyRoutes]
+  }
+
+  package "Controllers" {
+    [authController]
+    [doctorController]
+    [registrationController]
+    [paymentController]
+    [notifyController]
+  }
+
+  package "Services" {
+    [authService]
+    [doctorService]
+    [registrationService]
+    [paymentService]
+    [notifyService]
+  }
+
+  package "Middlewares" {
+    [authMiddleware]
+    [adminMiddleware]
+    [validation]
+  }
+
+  package "MQ / Consumers" {
+    component "MQ Client\n(amqplib)" as MQClient
+    component "Consumers\nnotificationConsumer.js" as Consumers
+  }
+
+  ExpressApp --> authRoutes
+  ExpressApp --> doctorRoutes
+  ExpressApp --> registrationRoutes
+  ExpressApp --> paymentRoutes
+  ExpressApp --> notifyRoutes
+
+  authRoutes --> authController
+  doctorRoutes --> doctorController
+  registrationRoutes --> registrationController
+  paymentRoutes --> paymentController
+  notifyRoutes --> notifyController
+
+  authController --> authService
+  doctorController --> doctorService
+  registrationController --> registrationService
+  paymentController --> paymentService
+  notifyController --> notifyService
+
+  registrationService --> MQClient : publishes events
+  MQClient --> Consumers : delivers messages
+}
+
+' Layered Architecture (modules mapping)
+package "Layered Architecture" #FFF8E1 {
+  component "Routes Layer\nroutes/*.js" as RoutesLayer
+  component "Controllers Layer\ncontrollers/*.js" as ControllersLayer
+  component "Services Layer\nservices/*.js" as ServicesLayer
+  component "Data & Infra Layer\ndb / mq / providers" as ReposLayer
+}
+
+RoutesLayer --> ControllersLayer : HTTP -> controller
+ControllersLayer --> ServicesLayer : invoke business logic
+ServicesLayer --> ReposLayer : persistence / async / external
+
+' 映射示例（代码位置示例）
+authRoutes ..> RoutesLayer
+authController ..> ControllersLayer
+authService ..> ServicesLayer
+
+
+' Infrastructure
+package "Infrastructure" #F0FFF0 {
+  component "Redis (cache/session)" as Redis
+  component "RabbitMQ" as RabbitMQ
+  component "Notification Service\n(notification-service)" as NotifyServiceContainer
+  component "Vercel / Static Hosting" as Vercel
+  component "Docker Compose (dev)" as DockerCompose
+}
+
+' Database separation: MySQL as independent package
+package "Database (MySQL)" #FFCDD2 {
+  component "MySQL (hospital)" as MySQL_DB
+}
+
+' 映射示例（代码位置示例）
+MySQL_DB ..> ReposLayer
+RabbitMQ ..> ReposLayer
+Redis ..> ReposLayer
+
+' Interactions
+PPages --> ExpressApp : REST API /api/*\n(request.js)
+DPages --> ExpressApp : REST API (doctor endpoints)
+AdminSPA --> ExpressApp : REST API (admin APIs)
+
+ExpressApp --> MySQL_DB : read/write (accounts, doctors, registrations, payments)
+ExpressApp --> Redis : cache / session
+ExpressApp --> RabbitMQ : publish events
+MQClient --> RabbitMQ
+Consumers --> MySQL_DB : write notifications
+NotifyServiceContainer --> RabbitMQ : subscribe
+NotifyServiceContainer --> MySQL_DB : read notifications
+
+Vercel --> AdminDist : serve static assets
+DockerCompose --> MySQL_DB
+DockerCompose --> RabbitMQ
+DockerCompose --> NotifyServiceContainer
+DockerCompose --> ExpressApp
+
+' Scripts and CI
+component "scripts/ensure_db.js, create_admin.js" as Scripts
+Scripts --> MySQL_DB : init / migrations
+Scripts --> ExpressApp : boot tasks
+
+' Observability
+component "Logging / Metrics" as Observability
+ExpressApp --> Observability
+NotifyServiceContainer --> Observability
+AdminSPA --> Observability
+
+' Notes
+note left of ExpressApp
+  Controllers: parse request -> call Services -> return response
+  Services: business logic, transactions, concurrency control (registration core)
+  Middlewares: auth / admin / validation
+end note
+
+note left of MQClient
+  MQ decouples async workflows:\nregistration.created -> notification service consumes -> send email/SMS
+end note
+
+note right of AdminSPA
+  Admin SPA built with Vite; static files deployed to Vercel or CDN.\nCalls management APIs under /api/*
+end note
+
+' ------------------ 细化：消息总线与通知服务 ------------------
+rectangle "Message Bus (Exchange / Queues)" as MessageBus #FFF3E0 {
+  component "exchange: registration, payment, notify" as MBExchange
+  component "queue: notify_queue / audit_queue / mail_queue" as MBQueues
+}
+
+' 保持与现有 RabbitMQ 组件的兼容关系（不修改已有连线）
+RabbitMQ --> MessageBus : routes to exchanges
+MQClient --> MessageBus : publish(events)
+MessageBus --> Consumers : deliver -> notificationConsumer
+MessageBus --> NotifyServiceContainer : fanout -> notification-service
+
+' Notification service 细化（独立容器）
+package "Notification Service (notification-service)" <<Infra>> {
+  component "processor.js / index.js" as NotifyProcessor
+  component "providers/* (smtp/aliyun/redis)" as NotifyProviders
+  NotifyProcessor --> NotifyProviders : send email/SMS
+  NotifyProcessor --> MySQL_DB : write notifications
+  NotifyProcessor --> Redis : rate-limit cache
+}
+
+' CI / Build 补充
+component "CI / Build" as CI
+CI --> AdminSPA : build & produce /backend/admin-vite/dist
+CI --> Scripts : run ensure_db / tests
+
+' ------------------ 中间件与外部集成细化 ------------------
+package "Middleware & Integrations" #FFF0F5 {
+  component "authMiddleware\nJWT / session" as AuthMw
+  component "adminMiddleware\nrole checks" as AdminMw
+  component "validation\nJoi / express-validator" as ValidationMw
+  component "rateLimiter\nexpress-rate-limit (Redis-backed)" as RateLimiter
+  component "cors\nCORS policy" as CorsMw
+}
+
+' 将中间件以非侵入方式与 ExpressApp 关联（不改变现有路由图）
+AuthMw --> ExpressApp : authenticate requests
+AdminMw --> ExpressApp : admin guard
+ValidationMw --> ExpressApp : request validation
+RateLimiter --> ExpressApp : throttle (uses Redis)
+CorsMw --> ExpressApp : CORS headers
+
+component "External Payment Provider\n(Alipay / WeChat Pay / Gateway)" as PayGateway
+paymentService --> PayGateway : createPayment / callback handling
+ExpressApp --> PayGateway : webhook callbacks
+
+component "AI Provider / LLM" as AIProvider
+aiService --> AIProvider : text/semantic requests
+
+component "Observability Backends\n(ELK / Prometheus / Grafana)" as ObsBackends
+Observability --> ObsBackends : logs / metrics / traces
+
+component "Background Workers / Cron Jobs" as Workers
+Workers --> MessageBus : scheduled events
+Workers --> MySQL_DB : maintenance / reports
+
+Scripts --> CI : invoked by pipeline
+CI --> DockerCompose : start test/dev stack
+CI --> Scripts : run ensure_db / run tests
+
+legend right
+  |= Symbol |= Description |
+  | Component | Module / Component |
+  | Package   | Directory or Subsystem |
+  | Message Bus | RabbitMQ exchanges & queues |
+  | Middleware | auth / admin / validation / rate-limiter |
+endlegend
+
+@enduml

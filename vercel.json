@@ -2,10 +2,16 @@
   "version": 2,
   "builds": [
     { "src": "backend/index.js", "use": "@vercel/node" },
-    { "src": "backend/admin-vite/package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
+    {
+      "src": "backend/admin-vite/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/backend/index.js" },
-    { "src": "/(.*)", "dest": "/backend/admin-vite/dist/$1" }
+    { "src": "/assets/(.*)", "dest": "/backend/admin-vite/dist/assets/$1" },
+    { "src": "/favicon.ico", "dest": "/backend/admin-vite/dist/favicon.ico" },
+    { "src": "/(.*)", "dest": "/backend/admin-vite/dist/index.html" }
   ]
 }
