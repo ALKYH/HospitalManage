@@ -10,6 +10,7 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/backend/index.js" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "\\/(.*\\.(js|css|png|jpg|svg|ico|json))", "dest": "/backend/admin-vite/dist/$1" },
+    { "src": "\\/(.*)", "dest": "/backend/admin-vite/dist/index.html" }
   ]
 }
