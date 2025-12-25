@@ -32,19 +32,19 @@ Page({
   onSelectSub(e) {
     const sub = e.currentTarget.dataset.sub;
     const deptObj = this.data.filteredDepartments[this.data.selectedDept];
-    const selected = { id: sub.id, name: sub.name, parent: { id: deptObj.id, name: deptObj.name } };
+    const selected = { id: sub.id, name: sub.name, parent: { id: deptObj.id, name: deptObj.name }, description: sub.description || sub.desc || '' };
     wx.setStorageSync('selectedDepartment', selected);
     wx.showToast({ title: `已选择：${deptObj.name} - ${sub.name}`, icon: 'success' });
-    setTimeout(() => wx.navigateBack(), 600);
+    setTimeout(() => wx.navigateTo({ url: '/pages/deptInfo/deptInfo' }), 300);
   },
 
   onSelectMain(e) {
     const dept = e.currentTarget.dataset.dept;
     if (!dept) return;
-    const selected = { id: dept.id, name: dept.name };
+    const selected = { id: dept.id, name: dept.name, description: dept.description || dept.desc || '' };
     wx.setStorageSync('selectedDepartment', selected);
     wx.showToast({ title: `已选择：${dept.name}`, icon: 'success' });
-    setTimeout(() => wx.navigateBack(), 600);
+    setTimeout(() => wx.navigateTo({ url: '/pages/deptInfo/deptInfo' }), 300);
   },
 
   onSearchInput(e) {

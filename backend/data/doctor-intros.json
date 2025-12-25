@@ -1,0 +1,20 @@
+[
+  {
+    "id": 2,
+    "name": "张三",
+    "department_id": 5,
+    "title": "主任医师",
+    "bio": "从业20年，擅长呼吸系统疾病的诊断与治疗。",
+    "contact": "电话：13800000001",
+    "photo": "/images/doctors/zhangming.jpg"
+  },
+  {
+    "id": 3,
+    "name": "李四",
+    "department_id": 5,
+    "title": "高级医生",
+    "bio": "擅长消化系统疾病，门诊时间周三、周五。",
+    "contact": "电话：13800000002",
+    "photo": "/images/doctors/lihua.jpg"
+  }
+]

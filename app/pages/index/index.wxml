@@ -88,7 +88,7 @@
         <text class="card-text">医生工作台</text>
       </view>
 
-      <view class="card ripple-effect" bindtap="onClick" data-action="医生登录">
+      <view class="card ripple-effect" bindtap="onClick" data-action="科室简介">
         <view class="icon-circle c-pink">
            <image class="card-icon-small" src="../../assets/visit.png"></image>
         </view>

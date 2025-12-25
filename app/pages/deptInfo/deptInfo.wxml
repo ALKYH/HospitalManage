@@ -1,0 +1,74 @@
+<view class="container">
+  <view class="header-bg"></view>
+
+  <view class="header-card card shadow slide-in">
+    <view class="header-top">
+      <view class="title-area">
+        <text class="title">{{department.name || '科室详情'}}</text>
+        <text wx:if="{{department.parent}}" class="subtitle-tag">所属：{{department.parent.name}}</text>
+      </view>
+      <button class="btn-share-mini" open-type="share">分享</button>
+    </view>
+    
+    <view class="desc-box">
+      <text class="desc-text {{isDescExpand ? '' : 'ellipsis'}}">{{department.description || '暂无科室简介。'}}</text>
+    </view>
+    
+    <view class="header-actions">
+      <picker class="picker-wrapper" mode="selector" range="{{departmentNames}}" bindchange="onDeptPickerChange">
+        <view class="picker-btn">切换科室 <text class="arrow-down"></text></view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="section-title-line">专家团队</view>
+  
+  <view class="doctor-section">
+    <scroll-view scroll-x class="doc-tab-scroll" wx:if="{{doctors.length}}">
+      <view class="doc-tabs">
+        <view 
+          wx:for="{{doctors}}" 
+          wx:key="id" 
+          class="doc-tab-item {{selectedDoctor.id === item.id ? 'active' : ''}}"
+          bindtap="onDocTap" 
+          data-id="{{item.id}}"
+        >
+          <text class="tab-name">{{item.name}}</text>
+          <text class="tab-title">{{item.title}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="doctor-detail-card card shadow slide-in" wx:if="{{selectedDoctor}}">
+      <view class="detail-main">
+        <image wx:if="{{selectedDoctor.photo}}" src="{{selectedDoctor.photo}}" class="d-photo" mode="aspectFill" />
+        <view class="d-info">
+          <view class="d-header">
+            <text class="d-name">{{selectedDoctor.name}}</text>
+            <text class="d-tag" wx:if="{{selectedDoctor.title}}">{{selectedDoctor.title}}</text>
+          </view>
+          <view class="d-contact" wx:if="{{selectedDoctor.contact}}">
+            <text class="icon-phone">📞</text> {{selectedDoctor.contact}}
+          </view>
+        </view>
+      </view>
+      
+      <view class="divider"></view>
+
+      <view class="d-bio-section">
+        <view class="small-title">个人简介</view>
+        <view class="d-bio">{{selectedDoctor.bio || '暂无详细介绍'}}</view>
+      </view>
+      
+      <button class="btn-appointment" bindtap="goToDoctor">预约挂号</button>
+    </view>
+
+    <view wx:elif="{{!doctors.length}}" class="no-docs-empty">
+      <text class="empty-text">该科室暂无医生信息</text>
+    </view>
+  </view>
+
+  <view class="bottom-bar">
+    <button class="btn-back" bindtap="onBack">返回上一页</button>
+  </view>
+</view>

@@ -85,4 +85,8 @@ const publicController = require('../controllers/publicController');
  */
 router.get('/departments', publicController.listDepartmentsTree);
 
+// department/doctor intro from static data files
+router.get('/department-intro/:id', publicController.getDepartmentIntro);
+router.get('/doctor-intro/:id', publicController.getDoctorIntro);
+
 module.exports = router;

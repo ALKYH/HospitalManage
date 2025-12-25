@@ -13,7 +13,6 @@
     "@picocss/pico": "^2.0.0",
     "echarts": "^5.4.0",
     "element-plus": "^2.12.0",
-    "hospital-backend": "file:..",
     "vue": "^3.4.0"
   },
   "devDependencies": {

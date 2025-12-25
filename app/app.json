@@ -24,7 +24,9 @@
     "pages/docAbsence/docAbsence",
     "pages/setting/changePassword/changePassword",
     "pages/catalog/catalog",
-    "pages/aiChat/aiChat"
+    "pages/aiChat/aiChat",
+    "pages/deptInfo/deptInfo"
+    
   ],
   "window": {
     "backgroundTextStyle": "light",
