@@ -50,8 +50,37 @@ app.use('/api/ai', aiRoutes);
 // Switch to the new Vite-based admin panel (built files)
 const fs = require('fs');
 const adminDistPath = path.join(__dirname, 'admin-vite', 'dist');
+const ADMIN_ASSET_EXT_REGEX = /\.(js|css|png|jpg|jpeg|svg|ico|json|woff|woff2|ttf|eot|webp|map)$/i;
 if (fs.existsSync(adminDistPath)) {
+  const adminIndexPath = path.join(adminDistPath, 'index.html');
+  let adminIndexHtml = null;
+  let adminIndexLoadPromise = null;
+  const loadAdminIndex = () => {
+    if (adminIndexHtml) return Promise.resolve(adminIndexHtml);
+    if (adminIndexLoadPromise) return adminIndexLoadPromise;
+    adminIndexLoadPromise = fs.promises.readFile(adminIndexPath, 'utf8')
+      .then((html) => {
+        adminIndexHtml = html;
+        return html;
+      })
+      .catch((err) => {
+        console.warn('Failed to load admin index for SPA fallback', err.message);
+        adminIndexLoadPromise = null;
+        return null;
+      });
+    return adminIndexLoadPromise;
+  };
   app.use('/admin', express.static(adminDistPath));
+  // SPA fallback: ensure direct deep links under /admin serve the built index
+  app.get('/admin/*', async (req, res, next) => {
+    // express.static serves assets first; this only handles non-asset deep links
+    if (ADMIN_ASSET_EXT_REGEX.test(req.path)) {
+      return next();
+    }
+    const html = await loadAdminIndex();
+    if (html) return res.type('html').send(html);
+    res.status(404).send('Admin UI not built');
+  });
 } else {
   // 如果构建产物不存在，返回友好提示页面，告诉开发者如何构建 admin 前端
   app.get('/admin', (req, res) => {
