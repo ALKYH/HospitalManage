@@ -18,13 +18,25 @@
 
     <!-- 右侧子科室 -->
     <scroll-view class="right-menu" scroll-y>
-      <block wx:for="{{filteredDepartments[selectedDept] && filteredDepartments[selectedDept].children}}" wx:key="id">
-        <view 
-          class="submenu-item" 
-          bindtap="onSelectSub" 
-          data-sub="{{item}}">
-          {{item.name}}
-        </view>
+      <block wx:if="{{filteredDepartments[selectedDept]}}">
+        <block wx:if="{{filteredDepartments[selectedDept].children && filteredDepartments[selectedDept].children.length > 0}}">
+          <block wx:for="{{filteredDepartments[selectedDept].children}}" wx:key="id">
+            <view 
+              class="submenu-item" 
+              bindtap="onSelectSub" 
+              data-sub="{{item}}">
+              {{item.name}}
+            </view>
+          </block>
+        </block>
+        <block wx:else>
+          <view 
+            class="submenu-item" 
+            bindtap="onSelectMain" 
+            data-dept="{{filteredDepartments[selectedDept]}}">
+            {{filteredDepartments[selectedDept].name}}
+          </view>
+        </block>
       </block>
     </scroll-view>
   </view>

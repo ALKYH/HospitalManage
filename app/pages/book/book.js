@@ -3,9 +3,7 @@ const { request } = require('../../utils/request');
 
 Page({
   data: {
-    departments: [],
-    deptOptions: [],
-    deptIndex: 0,
+    selectedDept: {},
     doctors: [],
     doctorIndex: 0,
     doctorsNames: [],
@@ -20,52 +18,74 @@ Page({
     slotsLabels: ['上午 08:00-10:00','上午 10:00-12:00','下午 14:00-16:00','下午 16:00-18:00'],
     minDate: (new Date()).toISOString().slice(0,10),
     message: '',
-    isLoading: true, // 新增：控制骨架屏
-    currentStep: 1, // 新增：控制当前焦点步骤 (1:科室, 2:医生, 3:日期/时段)
+    isLoading: false, 
+    currentStep: 1, 
+    availability: []
   },
 
   onLoad() {
-    this.loadDepartments();
+    this.generateAvailability();
   },
 
-  async loadDepartments() {
-    this.setData({ isLoading: true });
-    try {
-      const res = await request({ url: '/api/departments', method: 'GET' });
-      if (res && res.success) {
-        const list = [];
-        res.data.forEach(p => {
-          // push parent
-          list.push({ id: p.id, name: p.name });
-          if (p.children && p.children.length) {
-            p.children.forEach(c => list.push({ id: c.id, name: `${p.name} / ${c.name}` }));
-          }
+  generateAvailability() {
+    const list = [];
+    const today = new Date();
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const dateStr = d.toISOString().slice(0, 10);
+      ['8-10', '10-12', '14-16', '16-18'].forEach(slot => {
+        list.push({
+          date: dateStr,
+          slot: slot,
+          capacity: 1,
+          booked: 0
         });
-        this.setData({ 
-            departments: list, 
-            deptOptions: list.map(d => d.name),
-            isLoading: false // 数据加载完成
-        });
-      } else {
-        this.setData({ isLoading: false, message: '无法加载科室数据' });
-      }
-    } catch (e) {
-      console.error('loadDepartments err', e);
-      this.setData({ isLoading: false, message: '网络错误，请稍后重试' });
+      });
+    }
+    this.setData({ availability: list });
+  },
+
+  onTimeSelected(e) {
+    const { date, time } = e.detail || {};
+    if (date && time) {
+       const map = {
+        '上午 08:00-10:00': '8-10',
+        '上午 10:00-12:00': '10-12',
+        '下午 14:00-16:00': '14-16',
+        '下午 16:00-18:00': '16-18'
+      };
+      const slot = map[time] || null;
+      const slotIdx = this.data.slots.findIndex(s => s.value === slot);
+      this.setData({ date: date, slotIndex: slotIdx });
     }
   },
 
-  async onDeptChange(e) {
-    const idx = e.detail.value;
-    // 震动反馈
-    wx.vibrateShort({ type: 'light' });
-    this.setData({ deptIndex: idx, doctors: [], doctorIndex: 0, currentStep: 2 });
-    const dep = this.data.departments[idx];
-    if (dep && dep.id) {
+  onShow() {
+    const selectedDept = wx.getStorageSync('selectedDepartment');
+    if (selectedDept && selectedDept.id) {
+        if (!this.data.selectedDept || this.data.selectedDept.id !== selectedDept.id) {
+            this.setData({ 
+                selectedDept: selectedDept,
+                doctors: [], 
+                doctorIndex: 0, 
+                doctorsNames: [],
+                currentStep: 2 
+            });
+            this.loadDoctors(selectedDept.id);
+        }
+        wx.removeStorageSync('selectedDepartment');
+    }
+  },
+
+  goToDepartment() {
+    wx.navigateTo({ url: '/pages/deptPick/deptPick' });
+  },
+
+  async loadDoctors(deptId) {
       try {
-        // 增加 loading 提示
         wx.showLoading({ title: '加载医生中', mask: true });
-        const r = await request({ url: `/api/doctor?department_id=${dep.id}`, method: 'GET' });
+        const r = await request({ url: `/api/doctor?department_id=${deptId}`, method: 'GET' });
         wx.hideLoading();
         if (r && r.success) {
           const docs = r.data || [];
@@ -78,22 +98,11 @@ Page({
           console.error('load doctors err', err);
           this.setData({ doctors: [], doctorsNames: [], message: '加载医生失败' }); 
       }
-    }
   },
 
   onDoctorChange(e) {
     wx.vibrateShort({ type: 'light' });
     this.setData({ doctorIndex: e.detail.value, currentStep: 3 });
-  },
-
-  onDateChange(e) {
-    wx.vibrateShort({ type: 'light' });
-    this.setData({ date: e.detail.value });
-  },
-
-  onSlotChange(e) {
-    wx.vibrateShort({ type: 'light' });
-    this.setData({ slotIndex: e.detail.value, currentStep: 4 });
   },
   
   // 优化点击跳转 step
@@ -115,7 +124,7 @@ Page({
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
-    const dep = this.data.departments[this.data.deptIndex];
+    const dep = this.data.selectedDept;
     const doc = this.data.doctors[this.data.doctorIndex];
     const date = this.data.date;
     const slot = this.data.slots[this.data.slotIndex] && this.data.slots[this.data.slotIndex].value;
@@ -126,7 +135,7 @@ Page({
     if (!dep || !dep.id) { errorMsg = '请选择科室'; step = 1; }
     else if (!doc || !doc.id) { errorMsg = '请选择医生'; step = 2; }
     else if (!date) { errorMsg = '请选择日期'; step = 3; }
-    else if (!slot) { errorMsg = '请选择时段'; step = 4; }
+    else if (!slot) { errorMsg = '请选择时段'; step = 3; }
 
     if (errorMsg) {
       wx.showToast({ title: errorMsg, icon: 'none' });

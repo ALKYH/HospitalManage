@@ -11,7 +11,7 @@
       >
         <view class="calendar-day-name">{{ item.dayName }}</view>
         <view class="calendar-day">{{ item.day }}</view>
-        <view class="calendar-status">{{ item.hasAvailability ? '可约' : '无号' }}</view>
+        <view class="calendar-status">{{ item.hasAvailability ? (isWaitlist ? '可候补' : '可约') : '无号' }}</view>
       </view>
     </block>
   </scroll-view>

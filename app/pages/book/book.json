@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "register-date-picker": "/components/register-date-picker/register-date-picker"
+  }
+}

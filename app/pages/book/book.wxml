@@ -1,69 +1,62 @@
 <view class="container">
-
-<view class="header fade-in-down">
-  <text class="title">专家预约候补</text>
-  <text class="subtitle">请按步骤选择，成功后将进入候补队列。</text>
-</view>
-
-<view wx:if="{{isLoading}}" class="skeleton-container">
-  <block wx:for="{{[1,2,3,4]}}" wx:key="*this">
-    <view class="skeleton-field shimmer"></view>
-  </block>
-</view>
-
-<view wx:else class="form-wrapper slide-up">
-  
-  <view class="field-card {{currentStep === 1 ? 'active' : ''}}" data-step="1" bindtap="onFieldTap">
-    <view class="field-header">
-      <view class="step-badge step-1">1</view>
-      <text class="label">选择科室</text>
-      <text class="tip-text" wx:if="{{currentStep === 1}}">点击选择</text>
+    <view class="header">
+        <text class="main-title">专家预约候补</text>
+        <text class="sub-title">请按步骤选择，成功后将进入候补队列</text>
     </view>
-    <picker mode="selector" range="{{deptOptions}}" value="{{deptIndex}}" bindchange="onDeptChange" disabled="{{currentStep !== 1}}">
-      <view class="picker">{{deptOptions[deptIndex] || '点击此处选择科室'}}</view>
-    </picker>
-  </view>
 
-  <view class="field-card {{currentStep === 2 ? 'active' : ''}}" data-step="2" bindtap="onFieldTap">
-    <view class="field-header">
-      <view class="step-badge step-2">2</view>
-      <text class="label">选择医生</text>
-      <text class="tip-text" wx:if="{{currentStep === 2}}">{{doctorsNames.length > 0 ? '点击选择' : '请先选择科室'}}</text>
+    <view wx:if="{{isLoading}}" class="skeleton-container">
+        <block wx:for="{{[1,2,3,4]}}" wx:key="*this">
+            <view class="skeleton-field shimmer"></view>
+        </block>
     </view>
-    <picker mode="selector" range="{{doctorsNames}}" value="{{doctorIndex}}" bindchange="onDoctorChange" disabled="{{currentStep < 2 || doctorsNames.length === 0}}">
-      <view class="picker {{doctorsNames.length === 0 ? 'disabled-text' : ''}}">
-        {{doctors[doctorIndex] ? doctors[doctorIndex].name : '请选择医生'}}
-      </view>
-    </picker>
-  </view>
 
-  <view class="field-card {{currentStep === 3 ? 'active' : ''}}" data-step="3" bindtap="onFieldTap">
-    <view class="field-header">
-      <view class="step-badge step-3">3</view>
-      <text class="label">选择预约日期</text>
-      <text class="tip-text" wx:if="{{currentStep === 3}}">点击选择</text>
-    </view>
-    <picker mode="date" value="{{date}}" start="{{minDate}}" bindchange="onDateChange" disabled="{{currentStep < 3}}">
-      <view class="picker {{!date ? 'disabled-text' : ''}}">{{date || '请选择日期'}}</view>
-    </picker>
-  </view>
+    <block wx:else>
+        <view class="card {{currentStep === 1 ? 'active' : ''}}" data-step="1" bindtap="onFieldTap">
+            <view class="card-header">
+                <view class="step-badge step-1">1</view>
+                <text class="card-title">选择科室</text>
+            </view>
+            <view class="card-content">
+                <view class="picker-group">
+                    <view class="picker-display {{selectedDept.name ? 'selected-label' : ''}}">{{selectedDept.name || '请选择科室'}}</view>
+                    <button class="action-btn" bindtap="goToDepartment">立即选择科室</button>
+                </view>
+            </view>
+        </view>
 
-  <view class="field-card {{currentStep === 4 ? 'active' : ''}}" data-step="4" bindtap="onFieldTap">
-    <view class="field-header">
-      <view class="step-badge step-4">4</view>
-      <text class="label">选择时段</text>
-      <text class="tip-text" wx:if="{{currentStep === 4}}">点击选择</text>
-    </view>
-    <picker mode="selector" range="{{slotsLabels}}" value="{{slotIndex}}" bindchange="onSlotChange" disabled="{{currentStep < 4}}">
-      <view class="picker {{slots[slotIndex] ? '' : 'disabled-text'}}">{{slots[slotIndex].label}}</view>
-    </picker>
-  </view>
-  
-  <view class="actions">
-    <button class="btn btn-primary ripple-effect" bindtap="submit">提交预约候补</button>
-  </view>
-  
-</view>
+        <view class="card {{currentStep === 2 ? 'active' : ''}}" data-step="2" bindtap="onFieldTap">
+            <view class="card-header">
+                <view class="step-badge step-2">2</view>
+                <text class="card-title">选择医生</text>
+            </view>
+            <view class="card-content">
+                <picker mode="selector" range="{{doctorsNames}}" value="{{doctorIndex}}" bindchange="onDoctorChange" disabled="{{currentStep < 2 || doctorsNames.length === 0}}">
+                    <view class="picker-display {{doctorsNames.length === 0 ? 'disabled-text' : ''}} {{doctors[doctorIndex] ? 'selected-label' : ''}}">
+                        {{doctors[doctorIndex] ? doctors[doctorIndex].name : '请选择医生'}}
+                    </view>
+                </picker>
+                <text wx:if="{{selectedDept.id && doctorsNames.length === 0}}" class="tip-text">该科室暂无医生</text>
+            </view>
+        </view>
 
-<view class="message">{{message}}</view>
+        <view class="card {{currentStep === 3 ? 'active' : ''}}" data-step="3" bindtap="onFieldTap">
+            <view class="card-header">
+                <view class="step-badge step-3">3</view>
+                <text class="card-title">选择预约日期与时段</text>
+            </view>
+            <view class="card-content">
+                <register-date-picker 
+                  availability="{{availability}}" 
+                  isWaitlist="{{true}}"
+                  bind:timeSelected="onTimeSelected" 
+                />
+            </view>
+        </view>
+
+        <button class="register-btn {{date && slots[slotIndex] ? 'ready' : ''}}" bindtap="submit">
+            {{date && slots[slotIndex] ? '提交预约候补' : '请完成以上选择'}}
+        </button>
+    </block>
+
+    <view wx:if="{{message}}" class="message">{{message}}</view>
 </view>

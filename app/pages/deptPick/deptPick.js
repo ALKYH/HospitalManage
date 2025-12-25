@@ -38,6 +38,15 @@ Page({
     setTimeout(() => wx.navigateBack(), 600);
   },
 
+  onSelectMain(e) {
+    const dept = e.currentTarget.dataset.dept;
+    if (!dept) return;
+    const selected = { id: dept.id, name: dept.name };
+    wx.setStorageSync('selectedDepartment', selected);
+    wx.showToast({ title: `已选择：${dept.name}`, icon: 'success' });
+    setTimeout(() => wx.navigateBack(), 600);
+  },
+
   onSearchInput(e) {
     const value = e.detail.value.trim();
     const list = this.data.departments || [];

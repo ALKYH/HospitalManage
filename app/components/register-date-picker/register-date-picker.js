@@ -2,7 +2,8 @@ Component({
     properties: {
       availability: { type: Array, value: [] },
       // regiType: e.g. '普通', '专家', '特需' or '默认' - used to filter available slots by service type
-      regiType: { type: String, value: '' }
+      regiType: { type: String, value: '' },
+      isWaitlist: { type: Boolean, value: false }
     },
     data: {
       today: '',
@@ -21,7 +22,7 @@ Component({
       }
     },
     observers: {
-      'availability, regiType': function(avail, regiType) {
+      'availability, regiType, isWaitlist': function(avail, regiType, isWaitlist) {
         if (!Array.isArray(avail)) avail = [];
         let key = '';
         if (regiType && typeof regiType === 'string') key = regiType.replace(/号$/, '').trim();
@@ -33,7 +34,7 @@ Component({
           const hasForKey = (key && (typeof abt[key] !== 'undefined'));
           const hasDefault = (typeof abt['默认'] !== 'undefined');
           const availableCount = hasForKey ? parseInt(abt[key] || 0, 10) : (hasDefault ? parseInt(abt['默认'] || 0, 10) : Math.max(0, (a.capacity || 0) - (a.booked || 0)));
-          if (availableCount > 0) {
+          if (availableCount > 0 || isWaitlist) {
             map[a.date] = map[a.date] || new Set();
             map[a.date].add(a.slot);
           }
