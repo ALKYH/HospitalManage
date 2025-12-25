@@ -30,15 +30,19 @@
     },
     { 
       "src": "/admin/assets/(.*)",
-      "dest": "/backend/admin-vite/assets/$1"
+      "dest": "/backend/admin-vite/dist/assets/$1"
     },
     { 
       "src": "/admin/(.*\\.(js|css|png|jpg|jpeg|svg|ico|json|woff|woff2|ttf|eot|webp|map))",
-      "dest": "/backend/admin-vite/$1"
+      "dest": "/backend/admin-vite/dist/$1"
     },
     { 
-      "src": "/admin(.*)",
-      "dest": "/backend/admin-vite/index.html"
+      "src": "/admin$",
+      "dest": "/backend/admin-vite/dist/index.html"
+    },
+    { 
+      "src": "/admin/(.*)",
+      "dest": "/backend/admin-vite/dist/index.html"
     },
     { 
       "src": "/", 
